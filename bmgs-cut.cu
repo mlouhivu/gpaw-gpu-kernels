@@ -360,9 +360,41 @@ void Zcuda(bmgs_cut_cuda_gpu)(
 #endif //DEBUG_CUDA_CUT
 }
 
+double variance(double *reference, double *result, int n)
+{
+    int i;
+    double error = 0.0;
+    double diff;
+
+    for (i=0; i < n; i++) {
+        diff = reference[i] - result[i];
+        error += diff * diff;
+    }
+    return sqrt(error) / n;
+}
+
+void check_result(const char *name, double *y_ref, double *y, int n,
+                  double time, int verbose)
+{
+    double error;
+
+    error = variance(y_ref, y, n);
+    if (error || verbose) {
+        printf("\n%s\n", name);
+        printf("reference: %f %f %f ... %f %f\n",
+                y_ref[0], y_ref[1], y_ref[2], y_ref[n - 2], y_ref[n - 1]);
+        printf("   result: %f %f %f ... %f %f\n",
+                y[0], y[1], y[2], y[n - 2], y[n - 1]);
+        printf(" variance: %f\n", error);
+        printf("exec time: %f\n", time);
+    }
+}
+
 int main(void)
 {
     int i, j, k, l, s, t;
+    int verbose = 1;
+    char header[512];
     // carbon nanotube
     /*
     const int layers = 56;
@@ -503,9 +535,6 @@ int main(void)
     for (i=0; i < layers * m; i++) {
         y[i] = 0.0;
     }
-    printf("\nCPU\n");
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaEventRecord(start);
     for (l=0; l < layers; l++) {
         bmgs_cut(xp + l * n, dimx, position, yp + l * m, dimy);
@@ -513,12 +542,7 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    check_result("CPU", &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -540,19 +564,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blx.x, blx.y, blx.z, thx.x, thx.y, thx.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blx.x, blx.y, blx.z, thx.x, thx.y, thx.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -584,18 +599,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-    printf("\nKERNEL2\n");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL2  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -615,19 +622,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL3\n");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL3  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -648,19 +646,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL4\n");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks4.x, blocks4.y, blocks4.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL4  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks4.x, blocks4.y, blocks4.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -681,19 +670,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL5\n");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks5.x, blocks5.y, blocks5.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL5  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks5.x, blocks5.y, blocks5.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -718,19 +698,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL6\n");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks6.x, blocks6.y, blocks6.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL6  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks6.x, blocks6.y, blocks6.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 #endif
 
@@ -767,18 +738,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-    printf("\nKERNEL2 (optimised)");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL2 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -804,19 +767,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL3 (optimised)");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL3 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -842,19 +796,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL3 (optimised v2)");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL3 (optimised v2)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -880,19 +825,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL4 (optimised)");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL4 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -918,19 +854,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL4 (optimised v2)");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL4 (optimised v2)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -956,19 +883,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL4 (optimised v3)");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL4 (optimised v3)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
 #ifdef MY_VERBOSE
@@ -995,19 +913,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL5 (optimised)");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL5 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -1034,19 +943,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL5 (optimised v2)");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL5 (optimised v2)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -1076,19 +976,10 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-
-    printf("\nKERNEL6 (optimised)");
-    printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
-    printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2],
-            y_ref[layers * m - 2], y_ref[layers * m - 1]);
-    printf("   result: %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
-    printf("exec time: %f\n", time);
+    sprintf(header, "KERNEL6 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
+    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 #endif
 

@@ -505,7 +505,7 @@ int main(void)
     }
     printf("\nCPU\n");
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaEventRecord(start);
     for (l=0; l < layers; l++) {
         bmgs_cut(xp + l * n, dimx, position, yp + l * m, dimy);
@@ -513,10 +513,11 @@ int main(void)
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -544,12 +545,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blx.x, blx.y, blx.z, thx.x, thx.y, thx.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -586,12 +588,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -617,12 +620,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -649,12 +653,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks4.x, blocks4.y, blocks4.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -681,12 +686,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks5.x, blocks5.y, blocks5.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -717,12 +723,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks6.x, blocks6.y, blocks6.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 #endif
@@ -764,12 +771,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -801,12 +809,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -838,12 +847,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -875,12 +885,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -912,12 +923,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -949,12 +961,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -987,12 +1000,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -1025,12 +1039,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 
@@ -1066,12 +1081,13 @@ int main(void)
     printf("  <<<(%d,%d,%d), (%d, %d, %d)>>>\n",
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     printf("  initial: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    printf("reference: %f %f %f %f ... %f %f\n",
-            y_ref[0], y_ref[1], y_ref[2], y_ref[3], y_ref[m-2], y_ref[m-1]);
-    printf("   result: %f %f %f %f ... %f %f\n",
-            y[0], y[1], y[2], y[3], y[m-2], y[m-1]);
+    printf("reference: %f %f %f ... %f %f\n",
+            y_ref[0], y_ref[1], y_ref[2],
+            y_ref[layers * m - 2], y_ref[layers * m - 1]);
+    printf("   result: %f %f %f ... %f %f\n",
+            y[0], y[1], y[2], y[layers * m - 2], y[layers * m - 1]);
     printf("exec time: %f\n", time);
     results[ri++] = time;
 #endif

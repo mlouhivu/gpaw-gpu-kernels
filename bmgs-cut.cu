@@ -914,6 +914,9 @@ int main(void)
     int trials = 512;
     int kernels = 512;
     float results[trials][kernels];
+    float best[trials];
+    float total[kernels];
+    float time;
 
     int layers;
     int3 dimx;
@@ -1027,6 +1030,23 @@ int main(void)
         }
         printf("\n");
     }
+    printf("\nCompared to the best:\n");
+    for (i=0; i < ri; i++) {
+        for (j=0; j < rj; j++) {
+            time = results[i][j] - best[i];
+            if (time > 0.0)
+                printf("%f ", time);
+            else
+                printf("-------- ");
+            total[j] += time;
+        }
+        printf("\n");
+    }
+    printf("\nTotal (lost) time:\n");
+    for (j=0; j < rj; j++) {
+        printf("%f ", total[j]);
+    }
+    printf("\n");
 
     return 0;
 }

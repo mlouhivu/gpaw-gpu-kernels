@@ -478,8 +478,7 @@ int main(void)
 
     dim3 blocks(32, 32, 32);
     dim3 threads(16, 16, 1);
-    //dim3 blocks(32, 32, 32);
-    //dim3 threads(32, 8, 1);
+    dim3 blx, thx;
 
     float time;
     cudaEvent_t start, stop;
@@ -558,7 +557,6 @@ int main(void)
     /*** Original GPU implementation ***/
     xx_ = x_;
     yy_ = y_;
-    dim3 blx, thx;
     cudaEventRecord(start);
     bmgs_cut_cuda_gpu(xx_, dimx, position, yy_, dimy, layers, &blx, &thx);
     cudaEventRecord(stop);
@@ -586,14 +584,11 @@ int main(void)
     yy_ = y_;
     cudaEventRecord(start);
     for (l=0; l < layers; l++) {
-        pos.x = position[0]; // + dimx[0] * l;
+        pos.x = position[0];
         pos.y = position[1];
         pos.z = position[2];
         bmgs_cut_cuda_kernel2<<<blocks, threads>>>(xx_, yy_, sizex, sizey, pos);
-        /*dim3 blx(32, 32, 1);
-        dim3 thx(32, 8, 1);
-        bmgs_cut_cuda_kernel2b<<<blx, thx>>>(xx_, yy_, sizex, sizey, pos);
-        */xx_ += n;
+        xx_ += n;
         yy_ += m;
     }
     cudaEventRecord(stop);
@@ -639,16 +634,16 @@ int main(void)
     cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
 
     /*** New GPU implementation (multi-block, block in dim) ***/
-    dim3 blocks4(32, 32, layers);
+    blx = {32, 32, layers};
     cudaEventRecord(start);
-    bmgs_cut_cuda_kernel4<<<blocks4, threads>>>(
+    bmgs_cut_cuda_kernel4<<<blx, threads>>>(
             x_, y_, sizex, sizey, pos);
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
     sprintf(header, "KERNEL4  <<<(%d,%d,%d), (%d, %d, %d)>>>",
-            blocks4.x, blocks4.y, blocks4.z, threads.x, threads.y, threads.z);
+            blx.x, blx.y, blx.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -663,16 +658,16 @@ int main(void)
     cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
 
     /*** New GPU implementation (multi-block, block in dim) ***/
-    dim3 blocks5(32, 32 * layers, 1);
+    blx = {32, 32 * layers, 1};
     cudaEventRecord(start);
-    bmgs_cut_cuda_kernel5<<<blocks5, threads>>>(
+    bmgs_cut_cuda_kernel5<<<blx, threads>>>(
             x_, y_, sizex, sizey, pos, layers);
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
     sprintf(header, "KERNEL5  <<<(%d,%d,%d), (%d, %d, %d)>>>",
-            blocks5.x, blocks5.y, blocks5.z, threads.x, threads.y, threads.z);
+            blx.x, blx.y, blx.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -687,20 +682,20 @@ int main(void)
     cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
 
     /*** New GPU implementation (multi-block, block in dim) ***/
-    dim3 blocks6(32, 32, layers);
+    blx = {32, 32, layers};
     xx_ = x_;
     cudaEventRecord(start);
     xx_ += dimx[2] * dimx[1] * position[0]
          + dimx[2] * position[1]
          + position[2];
-    bmgs_cut_cuda_kernel6<<<blocks6, threads>>>(
+    bmgs_cut_cuda_kernel6<<<blx, threads>>>(
             xx_, y_, sizex, sizey, pos);
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
     sprintf(header, "KERNEL6  <<<(%d,%d,%d), (%d, %d, %d)>>>",
-            blocks6.x, blocks6.y, blocks6.z, threads.x, threads.y, threads.z);
+            blx.x, blx.y, blx.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 #endif

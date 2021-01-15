@@ -390,83 +390,12 @@ void check_result(const char *name, double *y_ref, double *y, int n,
     }
 }
 
-int main(void)
+int run(const int layers, const int dimx[3], const int dimy[3],
+        const int position[3])
 {
     int i, j, k, l, s, t;
     int verbose = 1;
     char header[512];
-    // carbon nanotube
-    /*
-    const int layers = 56;
-    const int dimx[3] = {41,21,32};
-    const int dimy[3] = {41,21,1};
-    int position[3] = {0,0,0};
-
-    const int layers = 56;
-    const int dimx[3] = {85,46,68};
-    const int dimy[3] = {79,40,3};
-    int position[3] = {3,3,62};
-
-    const int layers = 56;
-    const int dimx[3] = {85,45,68};
-    const int dimy[3] = {79,39,3};
-    int position[3] = {3,3,3};
-
-    const int layers = 56;
-    const int dimx[3] = {21,11,17};
-    const int dimy[3] = {19,1,15};
-    int position[3] = {1,9,1};
-
-    const int layers = 56;
-    const int dimx[3] = {21,11,18};
-    const int dimy[3] = {19,9,1};
-    int position[3] = {1,1,1};
-
-    // copper filament
-    const int layers = 25;
-    const int dimx[3] = {89,52,62};
-    const int dimy[3] = {83,46,3};
-    int position[3] = {3,3,56};
-
-    const int layers = 25;
-    const int dimx[3] = {43,24,29};
-    const int dimy[3] = {43,24,1};
-    int position[3] = {0,0,0};
-
-    const int layers = 25;
-    const int dimx[3] = {43,25,30};
-    const int dimy[3] = {41,24,28};
-    int position[3] = {1,1,1};
-
-    const int layers = 48;
-    const int dimx[3] = {89,52,62};
-    const int dimy[3] = {83,46,3};
-    int position[3] = {3,3,56};
-
-    // single fullerene
-    const int layers = 1;
-    const int dimx[3] = {6,7,12};
-    const int dimy[3] = {1,5,11};
-    int position[3] = {0,1,0};
-
-    const int layers = 1;
-    const int dimx[3] = {12,12,23};
-    const int dimy[3] = {1,11,22};
-    int position[3] = {0,0,0};
-
-    // other
-    const int layers = 12;
-    const int dimx[3] = {252,31,64};
-    const int dimy[3] = {252,31,1};
-    int position[3] = {0,0,0};
-    */
-
-    const int layers = 8;
-    const int dimx[3] = {100,100,100};
-    const int dimy[3] = {10,10,10};
-    int position[3] = {22,44,66};
-    /*
-    */
 
     const int n = dimx[0] * dimx[1] * dimx[2];
     const int m = dimy[0] * dimy[1] * dimy[2];
@@ -981,6 +910,83 @@ int main(void)
         printf("%f ", results[i]);
     }
     printf("\n\n");
+
+    return 0;
+}
+
+int main(void)
+{
+    // carbon nanotube
+    /*
+    const int layers = 56;
+    const int dimx[3] = {41,21,32};
+    const int dimy[3] = {41,21,1};
+    int position[3] = {0,0,0};
+
+    const int layers = 56;
+    const int dimx[3] = {85,46,68};
+    const int dimy[3] = {79,40,3};
+    int position[3] = {3,3,62};
+
+    const int layers = 56;
+    const int dimx[3] = {85,45,68};
+    const int dimy[3] = {79,39,3};
+    int position[3] = {3,3,3};
+
+    const int layers = 56;
+    const int dimx[3] = {21,11,17};
+    const int dimy[3] = {19,1,15};
+    int position[3] = {1,9,1};
+
+    const int layers = 56;
+    const int dimx[3] = {21,11,18};
+    const int dimy[3] = {19,9,1};
+    int position[3] = {1,1,1};
+
+    // copper filament
+    const int layers = 25;
+    const int dimx[3] = {89,52,62};
+    const int dimy[3] = {83,46,3};
+    int position[3] = {3,3,56};
+
+    const int layers = 25;
+    const int dimx[3] = {43,24,29};
+    const int dimy[3] = {43,24,1};
+    int position[3] = {0,0,0};
+
+    const int layers = 25;
+    const int dimx[3] = {43,25,30};
+    const int dimy[3] = {41,24,28};
+    int position[3] = {1,1,1};
+
+    const int layers = 48;
+    const int dimx[3] = {89,52,62};
+    const int dimy[3] = {83,46,3};
+    int position[3] = {3,3,56};
+
+    // single fullerene
+    const int layers = 1;
+    const int dimx[3] = {6,7,12};
+    const int dimy[3] = {1,5,11};
+    int position[3] = {0,1,0};
+
+    const int layers = 1;
+    const int dimx[3] = {12,12,23};
+    const int dimy[3] = {1,11,22};
+    int position[3] = {0,0,0};
+
+    // other
+    const int layers = 12;
+    const int dimx[3] = {252,31,64};
+    const int dimy[3] = {252,31,1};
+    int position[3] = {0,0,0};
+    */
+    const int layers = 8;
+    const int dimx[3] = {100,100,100};
+    const int dimy[3] = {10,10,10};
+    int position[3] = {22,44,66};
+
+    run(layers, dimx, dimy, position);
 
     return 0;
 }

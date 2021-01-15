@@ -484,7 +484,7 @@ int main(void)
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    float results[8];
+    float results[512];
     int ri=0;
 
     int3 sizex, sizey, pos;
@@ -884,7 +884,6 @@ int main(void)
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
-#ifdef MY_VERBOSE
     /*** reset ***/
     for (i=0; i < layers * n; i++) {
         x[i] = (double) i / 1000.0;
@@ -976,7 +975,6 @@ int main(void)
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
-#endif
 
     printf("\nTiming results:\n");
     for (i=0; i < ri; i++) {

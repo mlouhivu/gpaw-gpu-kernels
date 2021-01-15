@@ -390,12 +390,16 @@ void check_result(const char *name, double *y_ref, double *y, int n,
     }
 }
 
-int run(const int layers, const int dimx[3], const int dimy[3],
-        const int position[3])
+int run(const int layers, const int3 sizex, const int3 sizey,
+        int3 pos, float *results)
 {
     int i, j, k, l, s, t;
-    int verbose = 1;
+    int verbose = 0;
     char header[512];
+
+    const int dimx[3] = {sizex.x, sizex.y, sizex.z};
+    const int dimy[3] = {sizey.x, sizey.y, sizey.z};
+    const int position[3] = {pos.x, pos.y, pos.z};
 
     const int n = dimx[0] * dimx[1] * dimx[2];
     const int m = dimy[0] * dimy[1] * dimy[2];
@@ -413,16 +417,7 @@ int run(const int layers, const int dimx[3], const int dimy[3],
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    float results[512];
     int ri=0;
-
-    int3 sizex, sizey, pos;
-    sizex.x = dimx[0];
-    sizex.y = dimx[1];
-    sizex.z = dimx[2];
-    sizey.x = dimy[0];
-    sizey.y = dimy[1];
-    sizey.z = dimy[2];
 
     // initialise data
     for (i=0; i < layers * n; i++) {
@@ -813,6 +808,7 @@ int run(const int layers, const int dimx[3], const int dimy[3],
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
+#ifdef DEFUNC
     /*** reset ***/
     for (i=0; i < layers * n; i++) {
         x[i] = (double) i / 1000.0;
@@ -904,89 +900,133 @@ int run(const int layers, const int dimx[3], const int dimy[3],
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
+#endif
 
-    printf("\nTiming results:\n");
-    for (i=0; i < ri; i++) {
-        printf("%f ", results[i]);
-    }
-    printf("\n\n");
-
-    return 0;
+    return ri;
 }
 
 int main(void)
 {
+    int i, j;
+
+    int ri = 0;
+    int rj = 0;
+    int trials = 512;
+    int kernels = 512;
+    float results[trials][kernels];
+
+    int layers;
+    int3 dimx;
+    int3 dimy;
+    int3 position;
+
+    for (i=0; i < kernels; i++)
+        total[i] = 0.0;
+
     // carbon nanotube
-    /*
-    const int layers = 56;
-    const int dimx[3] = {41,21,32};
-    const int dimy[3] = {41,21,1};
-    int position[3] = {0,0,0};
+    layers = 56;
+    dimx = {41,21,32};
+    dimy = {41,21,1};
+    position = {0,0,0};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
-    const int layers = 56;
-    const int dimx[3] = {85,46,68};
-    const int dimy[3] = {79,40,3};
-    int position[3] = {3,3,62};
+    layers = 56;
+    dimx = {85,46,68};
+    dimy = {79,40,3};
+    position = {3,3,62};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
-    const int layers = 56;
-    const int dimx[3] = {85,45,68};
-    const int dimy[3] = {79,39,3};
-    int position[3] = {3,3,3};
+    layers = 56;
+    dimx = {85,45,68};
+    dimy = {79,39,3};
+    position = {3,3,3};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
-    const int layers = 56;
-    const int dimx[3] = {21,11,17};
-    const int dimy[3] = {19,1,15};
-    int position[3] = {1,9,1};
+    layers = 56;
+    dimx = {21,11,17};
+    dimy = {19,1,15};
+    position = {1,9,1};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
-    const int layers = 56;
-    const int dimx[3] = {21,11,18};
-    const int dimy[3] = {19,9,1};
-    int position[3] = {1,1,1};
+    layers = 56;
+    dimx = {21,11,18};
+    dimy = {19,9,1};
+    position = {1,1,1};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
     // copper filament
-    const int layers = 25;
-    const int dimx[3] = {89,52,62};
-    const int dimy[3] = {83,46,3};
-    int position[3] = {3,3,56};
+    layers = 25;
+    dimx = {89,52,62};
+    dimy = {83,46,3};
+    position = {3,3,56};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
-    const int layers = 25;
-    const int dimx[3] = {43,24,29};
-    const int dimy[3] = {43,24,1};
-    int position[3] = {0,0,0};
+    layers = 25;
+    dimx = {43,24,29};
+    dimy = {43,24,1};
+    position = {0,0,0};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
-    const int layers = 25;
-    const int dimx[3] = {43,25,30};
-    const int dimy[3] = {41,24,28};
-    int position[3] = {1,1,1};
+    layers = 25;
+    dimx = {43,25,30};
+    dimy = {41,24,28};
+    position = {1,1,1};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
-    const int layers = 48;
-    const int dimx[3] = {89,52,62};
-    const int dimy[3] = {83,46,3};
-    int position[3] = {3,3,56};
+    layers = 48;
+    dimx = {89,52,62};
+    dimy = {83,46,3};
+    position = {3,3,56};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
     // single fullerene
-    const int layers = 1;
-    const int dimx[3] = {6,7,12};
-    const int dimy[3] = {1,5,11};
-    int position[3] = {0,1,0};
+    layers = 1;
+    dimx = {6,7,12};
+    dimy = {1,5,11};
+    position = {0,1,0};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
-    const int layers = 1;
-    const int dimx[3] = {12,12,23};
-    const int dimy[3] = {1,11,22};
-    int position[3] = {0,0,0};
+    layers = 1;
+    dimx = {12,12,23};
+    dimy = {1,11,22};
+    position = {0,0,0};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
     // other
-    const int layers = 12;
-    const int dimx[3] = {252,31,64};
-    const int dimy[3] = {252,31,1};
-    int position[3] = {0,0,0};
-    */
-    const int layers = 8;
-    const int dimx[3] = {100,100,100};
-    const int dimy[3] = {10,10,10};
-    int position[3] = {22,44,66};
+    layers = 12;
+    dimx = {252,31,64};
+    dimy = {252,31,1};
+    position = {0,0,0};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
 
-    run(layers, dimx, dimy, position);
+    layers = 8;
+    dimx = {100,100,100};
+    dimy = {10,10,10};
+    position = {22,44,66};
+    j = run(layers, dimx, dimy, position, results[ri++]);
+    rj = MAX(rj, j);
+
+    printf("\nTiming results:\n");
+    for (i=0; i < ri; i++) {
+        best[i] = 9999.0;
+        for (j=0; j < rj; j++) {
+            printf("%f ", results[i][j]);
+            best[i] = MIN(best[i], results[i][j]);
+        }
+        printf("\n");
+    }
 
     return 0;
 }

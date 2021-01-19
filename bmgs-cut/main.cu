@@ -244,6 +244,21 @@ void check_result(const char *name, double *y_ref, double *y, int n,
     }
 }
 
+void reset(double *x, double *x_, int n,
+           double *y, double *y_, int m, int layers)
+{
+    int i;
+
+    for (i=0; i < layers * n; i++) {
+        x[i] = (double) i / 1000.0;
+    }
+    for (i=0; i < layers * m; i++) {
+        y[i] = 0.0;
+    }
+    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
+    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+}
+
 int run(const unsigned int layers, const int3 sizex, const int3 sizey,
         int3 pos, float *results, char *title)
 {
@@ -326,14 +341,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** Original GPU implementation ***/
     time = run_kernel(x_, sizex, pos, y_, sizey, layers, blx, thx,
@@ -343,14 +351,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
 #ifdef NONOPT_KERNELS
     /*** New GPU implementation ***/
@@ -377,14 +378,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (multi-block) ***/
     cudaEventRecord(start);
@@ -402,14 +396,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (multi-block, block in dim) ***/
     blx = {32, 32, layers};
@@ -428,14 +415,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (multi-block, block in dim) ***/
     blx = {32, 32 * layers, 1};
@@ -454,14 +434,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (multi-block, block in dim) ***/
     blx = {32, 32, layers};
@@ -487,14 +460,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     /*** OPTIMISED KERNELS ***/
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised) ***/
     xx_ = x_;
@@ -526,14 +492,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block) ***/
     cudaEventRecord(start);
@@ -557,14 +516,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block) ***/
     cudaEventRecord(start);
@@ -588,14 +540,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
     cudaEventRecord(start);
@@ -619,14 +564,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
     cudaEventRecord(start);
@@ -650,14 +588,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
     cudaEventRecord(start);
@@ -682,14 +613,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
 
 #ifdef DEFUNC
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
     cudaEventRecord(start);
@@ -713,14 +637,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
     cudaEventRecord(start);
@@ -745,14 +662,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     results[ri++] = time;
 
     /*** reset ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
     xx_ = x_;

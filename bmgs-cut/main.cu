@@ -708,10 +708,6 @@ int main(void)
 
     char title[512];
 
-    int layers;
-    int3 dimx;
-    int3 dimy;
-    int3 position;
     t_config config;
     t_arg arg;
 

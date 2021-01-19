@@ -391,11 +391,12 @@ void check_result(const char *name, double *y_ref, double *y, int n,
 }
 
 int run(const int layers, const int3 sizex, const int3 sizey,
-        int3 pos, float *results)
+        int3 pos, float *results, char *title)
 {
     int i, j, k, l, s, t;
     int verbose = 0;
     char header[512];
+    char name[32];
 
     const int dimx[3] = {sizex.x, sizex.y, sizex.z};
     const int dimy[3] = {sizey.x, sizey.y, sizey.z};
@@ -465,7 +466,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-    check_result("CPU", &y_ref[0], yp, layers * m, time, verbose);
+    sprintf(name, "CPU");
+    sprintf(title, "%8s", name);
+    check_result(name, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
     /*** reset ***/
@@ -487,7 +490,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blx.x, blx.y, blx.z, thx.x, thx.y, thx.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -519,7 +524,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL2  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL2");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -542,7 +549,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL3  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL3");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -566,7 +575,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL4  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL4");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blx.x, blx.y, blx.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -590,7 +601,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL5  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL5");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blx.x, blx.y, blx.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -618,7 +631,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL6  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL6");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blx.x, blx.y, blx.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -658,7 +673,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL2 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL2");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -687,7 +704,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL3 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL3");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -716,7 +735,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL3 (optimised v2)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERN3v2");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -745,7 +766,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL4 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL4");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -774,7 +797,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL4 (optimised v2)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERN4v2");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -803,7 +828,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL4 (optimised v3)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERN4v3");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -833,7 +860,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL5 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL5");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -863,7 +892,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL5 (optimised v2)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL5v2");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -896,7 +927,9 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(header, "KERNEL6 (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>",
+    sprintf(name, "KERNEL6");
+    sprintf(title, "%s %8s", title, name);
+    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
@@ -918,6 +951,8 @@ int main(void)
     float total[kernels];
     float time;
 
+    char title[512];
+
     int layers;
     int3 dimx;
     int3 dimy;
@@ -931,35 +966,35 @@ int main(void)
     dimx = {41,21,32};
     dimy = {41,21,1};
     position = {0,0,0};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     layers = 56;
     dimx = {85,46,68};
     dimy = {79,40,3};
     position = {3,3,62};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     layers = 56;
     dimx = {85,45,68};
     dimy = {79,39,3};
     position = {3,3,3};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     layers = 56;
     dimx = {21,11,17};
     dimy = {19,1,15};
     position = {1,9,1};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     layers = 56;
     dimx = {21,11,18};
     dimy = {19,9,1};
     position = {1,1,1};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     // copper filament
@@ -967,28 +1002,28 @@ int main(void)
     dimx = {89,52,62};
     dimy = {83,46,3};
     position = {3,3,56};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     layers = 25;
     dimx = {43,24,29};
     dimy = {43,24,1};
     position = {0,0,0};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     layers = 25;
     dimx = {43,25,30};
     dimy = {41,24,28};
     position = {1,1,1};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     layers = 48;
     dimx = {89,52,62};
     dimy = {83,46,3};
     position = {3,3,56};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     // single fullerene
@@ -996,14 +1031,14 @@ int main(void)
     dimx = {6,7,12};
     dimy = {1,5,11};
     position = {0,1,0};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     layers = 1;
     dimx = {12,12,23};
     dimy = {1,11,22};
     position = {0,0,0};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     // other
@@ -1011,17 +1046,17 @@ int main(void)
     dimx = {252,31,64};
     dimy = {252,31,1};
     position = {0,0,0};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
     layers = 8;
     dimx = {100,100,100};
     dimy = {10,10,10};
     position = {22,44,66};
-    j = run(layers, dimx, dimy, position, results[ri++]);
+    j = run(layers, dimx, dimy, position, results[ri++], title);
     rj = MAX(rj, j);
 
-    printf("\nTiming results:\n");
+    printf("\nTiming results:\n%s\n", title);
     for (i=0; i < ri; i++) {
         best[i] = 9999.0;
         for (j=0; j < rj; j++) {
@@ -1030,7 +1065,7 @@ int main(void)
         }
         printf("\n");
     }
-    printf("\nCompared to the best:\n");
+    printf("\nCompared to the best:\n%s\n", title);
     for (i=0; i < ri; i++) {
         for (j=0; j < rj; j++) {
             time = results[i][j] - best[i];
@@ -1042,7 +1077,7 @@ int main(void)
         }
         printf("\n");
     }
-    printf("\nTotal (lost) time:\n");
+    printf("\nTotal (lost) time:\n%s\n", title);
     for (j=0; j < rj; j++) {
         printf("%f ", total[j]);
     }

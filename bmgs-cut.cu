@@ -5,6 +5,8 @@
 #define GRID_MAX 65535
 #define BLOCK_TOTALMAX 256
 
+//#define NONOPT_KERNELS 1
+
 #define Tcuda          double
 #define Zcuda(f)       f
 #define MULTT(a,b)     ((a) * (b))
@@ -507,7 +509,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
     cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
 
-#ifdef MY_VERBOSE
+#ifdef NONOPT_KERNELS
     /*** New GPU implementation ***/
     xx_ = x_;
     yy_ = y_;

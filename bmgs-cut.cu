@@ -390,7 +390,7 @@ void check_result(const char *name, double *y_ref, double *y, int n,
     }
 }
 
-int run(const int layers, const int3 sizex, const int3 sizey,
+int run(const unsigned int layers, const int3 sizex, const int3 sizey,
         int3 pos, float *results, char *title)
 {
     int i, j, k, l, s, t;

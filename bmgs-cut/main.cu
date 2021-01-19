@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
+#include "config.h"
 
 #define BLOCK_MAX 32
 #define GRID_MAX 65535
@@ -959,104 +960,19 @@ int main(void)
     int3 dimx;
     int3 dimy;
     int3 position;
+    t_config config;
+    t_arg arg;
 
     for (i=0; i < kernels; i++)
         total[i] = 0.0;
 
-    // carbon nanotube
-    layers = 56;
-    dimx = {41,21,32};
-    dimy = {41,21,1};
-    position = {0,0,0};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    layers = 56;
-    dimx = {85,46,68};
-    dimy = {79,40,3};
-    position = {3,3,62};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    layers = 56;
-    dimx = {85,45,68};
-    dimy = {79,39,3};
-    position = {3,3,3};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    layers = 56;
-    dimx = {21,11,17};
-    dimy = {19,1,15};
-    position = {1,9,1};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    layers = 56;
-    dimx = {21,11,18};
-    dimy = {19,9,1};
-    position = {1,1,1};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    // copper filament
-    layers = 25;
-    dimx = {89,52,62};
-    dimy = {83,46,3};
-    position = {3,3,56};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    layers = 25;
-    dimx = {43,24,29};
-    dimy = {43,24,1};
-    position = {0,0,0};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    layers = 25;
-    dimx = {43,25,30};
-    dimy = {41,24,28};
-    position = {1,1,1};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    layers = 48;
-    dimx = {89,52,62};
-    dimy = {83,46,3};
-    position = {3,3,56};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    // single fullerene
-    layers = 1;
-    dimx = {6,7,12};
-    dimy = {1,5,11};
-    position = {0,1,0};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    layers = 1;
-    dimx = {12,12,23};
-    dimy = {1,11,22};
-    position = {0,0,0};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    // other
-    layers = 12;
-    dimx = {252,31,64};
-    dimy = {252,31,1};
-    position = {0,0,0};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
-
-    layers = 8;
-    dimx = {100,100,100};
-    dimy = {10,10,10};
-    position = {22,44,66};
-    j = run(layers, dimx, dimy, position, results[ri++], title);
-    rj = MAX(rj, j);
+    config = get_config();
+    for (i=0; i < config.nargs; i++) {
+        arg = config.args[i];
+        j = run(arg.layers, arg.dimx, arg.dimy, arg.position,
+                results[ri++], title);
+        rj = MAX(rj, j);
+    }
 
     printf("\nTiming results:\n%s\n", title);
     for (i=0; i < ri; i++) {

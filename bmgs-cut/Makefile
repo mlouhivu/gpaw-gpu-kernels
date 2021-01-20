@@ -6,5 +6,8 @@ objects := $(patsubst %.cu, %.o, $(wildcard *.cu))
 bmgs-cut: $(objects)
 	$(CC) -o $@ $(objects)
 
-%.o: %.cu
+main.o: main.cu common.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+%.o: %.cu %.h common.h
 	$(CC) -c $(CFLAGS) $< -o $@

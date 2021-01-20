@@ -616,9 +616,10 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
     cudaEventRecord(start);
-    threads.x = MIN(nextPow2(dimy[2]), BLOCK_TOTALMAX);
-    threads.y = MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
+    threads.x = MIN(nextPow2(dimy[2]), BLOCK_MAX);
+    threads.y = MIN(MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x),
+                    BLOCK_MAX);
+    threads.z = MIN(BLOCK_TOTALMAX / (threads.x * threads.y), BLOCK_MAX);
     blocks.x = (dimy[2] + threads.x - 1) / threads.x;
     blocks.y = layers * ((dimy[1] + threads.y - 1) / threads.y);
     blocks.z = 1;
@@ -641,9 +642,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
     cudaEventRecord(start);
     threads.x = 1;
-    threads.y = MIN(MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x),
-                    BLOCK_MAX);
-    threads.z = BLOCK_MAX / (threads.x * threads.y);
+    threads.y = MIN(nextPow2(dimy[1]), BLOCK_MAX);
+    threads.z = MIN(BLOCK_MAX / (threads.x * threads.y), BLOCK_MAX);
     blocks.x = (dimy[2] + threads.x - 1) / threads.x;
     blocks.y = layers * ((dimy[1] + threads.y - 1) / threads.y);
     blocks.z = 1;

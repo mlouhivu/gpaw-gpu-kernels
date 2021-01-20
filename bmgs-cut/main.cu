@@ -53,13 +53,13 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel6)(
 __global__ void Zcuda(bmgs_cut_cuda_kernel5)(
         Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o, int blocks)
 {
-    int gridsize_y = gridDim.y / blocks;
+    int gridsize_y = (gridDim.y + blocks - 1) / blocks;
     int b = blockIdx.y / gridsize_y;
-    int tidy = threadIdx.y + (blockIdx.y - b * gridsize_y) * blockDim.y;
     int tidx = threadIdx.x + blockIdx.x * blockDim.x;
+    int tidy = threadIdx.y + (blockIdx.y - b * gridsize_y) * blockDim.y;
     int tidz = threadIdx.z;
     int stridex = gridDim.x * blockDim.x;
-    int stridey = gridDim.y * blockDim.y;
+    int stridey = gridsize_y * blockDim.y;
     int stridez = blockDim.z;
     int t, s, tz, sz, tb, sb;
     int i, j, k;
@@ -418,7 +418,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (multi-block, block in dim) ***/
-    blx = {32, 32 * layers, 1};
+    blx = {32, 4 * layers, 1};
     cudaEventRecord(start);
     bmgs_cut_cuda_kernel5<<<blx, threads>>>(
             x_, y_, sizex, sizey, pos, layers);
@@ -611,7 +611,6 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
-#ifdef DEFUNC
     /*** reset ***/
     reset(x, x_, n, y, y_, m, layers);
 
@@ -621,7 +620,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     threads.y = MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
     threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
     blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = layers * (dimy[1] + threads.y - 1) / threads.y;
+    blocks.y = layers * ((dimy[1] + threads.y - 1) / threads.y);
     blocks.z = 1;
     bmgs_cut_cuda_kernel5<<<blocks, threads>>>(
             x_, y_, sizex, sizey, pos, layers);
@@ -646,7 +645,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
                     BLOCK_MAX);
     threads.z = BLOCK_MAX / (threads.x * threads.y);
     blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = layers * (dimy[1] + threads.y - 1) / threads.y;
+    blocks.y = layers * ((dimy[1] + threads.y - 1) / threads.y);
     blocks.z = 1;
     bmgs_cut_cuda_kernel5<<<blocks, threads>>>(
             x_, y_, sizex, sizey, pos, layers);
@@ -688,7 +687,6 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
-#endif
 
     return ri;
 }

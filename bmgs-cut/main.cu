@@ -2,7 +2,7 @@
 #include <cuda_runtime.h>
 #include "common.h"
 #include "config.h"
-#include "kernel.h"
+#include "kernels.h"
 
 
 void bmgs_cut(const double *a, const int n[3], const int c[3],
@@ -20,147 +20,6 @@ void bmgs_cut(const double *a, const int n[3], const int c[3],
       a += n[2] * (n[1] - m[1]);
     }
 }
-
-
-__global__ void Zcuda(bmgs_cut_cuda_kernel6)(
-        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o)
-{
-    int tidx = threadIdx.x + blockIdx.x * blockDim.x;
-    int tidy = threadIdx.y + blockIdx.y * blockDim.y;
-    int tidz = threadIdx.z;
-    int stridex = gridDim.x * blockDim.x;
-    int stridey = gridDim.y * blockDim.y;
-    int stridez = blockDim.z;
-    int b = blockIdx.z;
-    int t, s, tz, sz, tb, sb;
-    int i, j, k;
-
-    tb = m.z * m.y * m.x * b;
-    sb = n.z * n.y * n.x * b;
-    for (i = tidz; i < m.x; i += stridez) {
-        tz = tb + m.z * m.y * i;
-        sz = sb + n.z * n.y * i;
-        for (j = tidy; j < m.y; j += stridey) {
-            t = tz + m.z * j;
-            s = sz + n.z * j;
-            for (k = tidx; k < m.z; k += stridex) {
-                tgt[k + t] = src[k + s];
-            }
-        }
-    }
-}
-
-__global__ void Zcuda(bmgs_cut_cuda_kernel5)(
-        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o, int blocks)
-{
-    int gridsize_y = (gridDim.y + blocks - 1) / blocks;
-    int b = blockIdx.y / gridsize_y;
-    int tidx = threadIdx.x + blockIdx.x * blockDim.x;
-    int tidy = threadIdx.y + (blockIdx.y - b * gridsize_y) * blockDim.y;
-    int tidz = threadIdx.z;
-    int stridex = gridDim.x * blockDim.x;
-    int stridey = gridsize_y * blockDim.y;
-    int stridez = blockDim.z;
-    int t, s, tz, sz, tb, sb;
-    int i, j, k;
-
-    tb = m.z * m.y * m.x * b;
-    sb = n.z * n.y * n.x * b;
-    for (i = tidz; i < m.x; i += stridez) {
-        tz = tb + m.z * m.y * i;
-        sz = sb + n.z * n.y * (i + o.x) + o.z;
-        for (j = tidy; j < m.y; j += stridey) {
-            t = tz + m.z * j;
-            s = sz + n.z * (j + o.y);
-            for (k = tidx; k < m.z; k += stridex) {
-                tgt[k + t] = src[k + s];
-            }
-        }
-    }
-}
-
-__global__ void Zcuda(bmgs_cut_cuda_kernel4)(
-        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o)
-{
-    int tidx = threadIdx.x + blockIdx.x * blockDim.x;
-    int tidy = threadIdx.y + blockIdx.y * blockDim.y;
-    int tidz = threadIdx.z;
-    int stridex = gridDim.x * blockDim.x;
-    int stridey = gridDim.y * blockDim.y;
-    int stridez = blockDim.z;
-    int b = blockIdx.z;
-    int t, s, tz, sz, tb, sb;
-    int i, j, k;
-
-    tb = m.z * m.y * m.x * b;
-    sb = n.z * n.y * n.x * b;
-    for (i = tidz; i < m.x; i += stridez) {
-        tz = tb + m.z * m.y * i;
-        sz = sb + n.z * n.y * (i + o.x) + o.z;
-        for (j = tidy; j < m.y; j += stridey) {
-            t = tz + m.z * j;
-            s = sz + n.z * (j + o.y);
-            for (k = tidx; k < m.z; k += stridex) {
-                tgt[k + t] = src[k + s];
-            }
-        }
-    }
-}
-
-__global__ void Zcuda(bmgs_cut_cuda_kernel3)(
-        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o, int blocks)
-{
-    int tidx = threadIdx.x + blockIdx.x * blockDim.x;
-    int tidy = threadIdx.y + blockIdx.y * blockDim.y;
-    int tidz = threadIdx.z + blockIdx.z * blockDim.z;
-    int stridex = gridDim.x * blockDim.x;
-    int stridey = gridDim.y * blockDim.y;
-    int stridez = gridDim.z * blockDim.z;
-    int t, s, tz, sz, tb, sb, b;
-    int i, j, k;
-
-    for (b=0; b < blocks; b++) {
-        tb = m.z * m.y * m.x * b;
-        sb = n.z * n.y * n.x * b;
-        for (i = tidz; i < m.x; i += stridez) {
-            tz = tb + m.z * m.y * i;
-            sz = sb + n.z * n.y * (i + o.x) + o.z;
-            for (j = tidy; j < m.y; j += stridey) {
-                t = tz + m.z * j;
-                s = sz + n.z * (j + o.y);
-                for (k = tidx; k < m.z; k += stridex) {
-                    tgt[k + t] = src[k + s];
-                }
-            }
-        }
-    }
-}
-
-__global__ void Zcuda(bmgs_cut_cuda_kernel2)(
-        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o)
-{
-    int tidx = threadIdx.x + blockIdx.x * blockDim.x;
-    int tidy = threadIdx.y + blockIdx.y * blockDim.y;
-    int tidz = threadIdx.z + blockIdx.z * blockDim.z;
-    int stridex = gridDim.x * blockDim.x;
-    int stridey = gridDim.y * blockDim.y;
-    int stridez = gridDim.z * blockDim.z;
-    int t, s, tz, sz;
-    int i, j, k;
-
-    for (i = tidz; i < m.x; i += stridez) {
-        tz = m.z * m.y * i;
-        sz = n.z * n.y * (i + o.x) + o.z;
-        for (j = tidy; j < m.y; j += stridey) {
-            t = tz + m.z * j;
-            s = sz + n.z * (j + o.y);
-            for (k = tidx; k < m.z; k += stridex) {
-                tgt[k + t] = src[k + s];
-            }
-        }
-    }
-}
-
 
 double variance(double *reference, double *result, int n)
 {
@@ -225,10 +84,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     double *xp = &x[0];
     double *yp = &y[0];
     double *x_, *y_;
-    double *xx_, *yy_;
 
-    dim3 blocks(32, 32, 32);
-    dim3 threads(16, 16, 1);
     dim3 blx, thx;
 
     float time;
@@ -302,31 +158,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised) ***/
-    xx_ = x_;
-    yy_ = y_;
-    cudaEventRecord(start);
-    threads.x = min(nextPow2(dimy[2]), BLOCK_TOTALMAX);
-    threads.y = min(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = (dimy[1] + threads.y - 1) / threads.y;
-    blocks.z = (dimy[0] + threads.z - 1) / threads.z;
-    for (l=0; l < layers; l++) {
-        pos.x = position[0];
-        pos.y = position[1];
-        pos.z = position[2];
-        bmgs_cut_cuda_kernel2<<<blocks, threads>>>(xx_, yy_, sizex, sizey, pos);
-        xx_ += n;
-        yy_ += m;
-    }
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&time, start, stop);
+    time = run_kernel1(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(name, "KERNEL2");
-    sprintf(title, "%s %8s", title, name);
-    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -334,23 +167,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block) ***/
-    cudaEventRecord(start);
-    threads.x = min(nextPow2(dimy[2]), BLOCK_TOTALMAX);
-    threads.y = min(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = (dimy[1] + threads.y - 1) / threads.y;
-    blocks.z = (dimy[0] + threads.z - 1) / threads.z;
-    bmgs_cut_cuda_kernel3<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos, layers);
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&time, start, stop);
+    time = run_kernel2(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(name, "KERNEL3");
-    sprintf(title, "%s %8s", title, name);
-    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -358,23 +176,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block) ***/
-    cudaEventRecord(start);
-    threads.x = min(nextPow2(dimy[2]), BLOCK_MAX);
-    threads.y = min(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = (dimy[1] + threads.y - 1) / threads.y;
-    blocks.z = (dimy[0] + threads.z - 1) / threads.z;
-    bmgs_cut_cuda_kernel3<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos, layers);
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&time, start, stop);
+    time = run_kernel2b(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(name, "KERN3v2");
-    sprintf(title, "%s %8s", title, name);
-    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -382,23 +185,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    cudaEventRecord(start);
-    threads.x = MIN(nextPow2(dimy[2]), BLOCK_TOTALMAX);
-    threads.y = MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = (dimy[1] + threads.y - 1) / threads.y;
-    blocks.z = layers;
-    bmgs_cut_cuda_kernel4<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos);
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&time, start, stop);
+    time = run_kernel3(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(name, "KERNEL4");
-    sprintf(title, "%s %8s", title, name);
-    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -406,23 +194,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    cudaEventRecord(start);
-    threads.x = MIN(nextPow2(dimy[2]), BLOCK_MAX);
-    threads.y = MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = (dimy[1] + threads.y - 1) / threads.y;
-    blocks.z = layers;
-    bmgs_cut_cuda_kernel4<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos);
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&time, start, stop);
+    time = run_kernel3b(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(name, "KERN4v2");
-    sprintf(title, "%s %8s", title, name);
-    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -430,23 +203,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    cudaEventRecord(start);
-    threads.x = MIN(nextPow2(dimy[2]), BLOCK_MAX);
-    threads.y = MIN(nextPow2(dimy[1]), BLOCK_MAX / threads.x);
-    threads.z = BLOCK_MAX / (threads.x * threads.y);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = (dimy[1] + threads.y - 1) / threads.y;
-    blocks.z = layers;
-    bmgs_cut_cuda_kernel4<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos);
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&time, start, stop);
+    time = run_kernel3c(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(name, "KERN4v3");
-    sprintf(title, "%s %8s", title, name);
-    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -454,24 +212,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    cudaEventRecord(start);
-    threads.x = MIN(nextPow2(dimy[2]), BLOCK_MAX);
-    threads.y = MIN(MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x),
-                    BLOCK_MAX);
-    threads.z = MIN(BLOCK_TOTALMAX / (threads.x * threads.y), BLOCK_MAX);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = layers * ((dimy[1] + threads.y - 1) / threads.y);
-    blocks.z = 1;
-    bmgs_cut_cuda_kernel5<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos, layers);
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&time, start, stop);
+    time = run_kernel4(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(name, "KERNEL5");
-    sprintf(title, "%s %8s", title, name);
-    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -479,23 +221,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    cudaEventRecord(start);
-    threads.x = 1;
-    threads.y = MIN(nextPow2(dimy[1]), BLOCK_MAX);
-    threads.z = MIN(BLOCK_MAX / (threads.x * threads.y), BLOCK_MAX);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = layers * ((dimy[1] + threads.y - 1) / threads.y);
-    blocks.z = 1;
-    bmgs_cut_cuda_kernel5<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos, layers);
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&time, start, stop);
+    time = run_kernel4b(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(name, "KERNEL5v2");
-    sprintf(title, "%s %8s", title, name);
-    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
@@ -503,27 +230,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    xx_ = x_;
-    cudaEventRecord(start);
-    threads.x = MIN(nextPow2(dimy[2]), BLOCK_TOTALMAX);
-    threads.y = MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = (dimy[1] + threads.y - 1) / threads.y;
-    blocks.z = layers;
-    xx_ += dimx[2] * dimx[1] * position[0]
-         + dimx[2] * position[1]
-         + position[2];
-    bmgs_cut_cuda_kernel6<<<blocks, threads>>>(
-            xx_, y_, sizex, sizey, pos);
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&time, start, stop);
+    time = run_kernel5(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    sprintf(name, "KERNEL6");
-    sprintf(title, "%s %8s", title, name);
-    sprintf(header, "%s (optimised)  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 

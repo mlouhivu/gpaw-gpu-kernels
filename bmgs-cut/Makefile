@@ -9,5 +9,11 @@ bmgs-cut: $(objects)
 main.o: main.cu common.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-%.o: %.cu %.h common.h
+config.o: config.cu config.h
 	$(CC) -c $(CFLAGS) $< -o $@
+
+%.o: %.cu kernels.h common.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+clean:
+	rm *.o bmgs-cut

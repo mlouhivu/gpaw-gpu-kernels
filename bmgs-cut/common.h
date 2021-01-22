@@ -5,8 +5,6 @@
 #define GRID_MAX 65535
 #define BLOCK_TOTALMAX 256
 
-//#define NONOPT_KERNELS 1
-
 #define Tcuda          double
 #define Zcuda(f)       f
 #define MULTT(a,b)     ((a) * (b))

@@ -28,6 +28,7 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel3)(
     }
 }
 
+/*** New GPU implementation (multi-block, block in dim) ***/
 float run_kernel3(double *x_, const int3 sizex, const int3 pos,
                   double *y_, const int3 sizey,
                   const unsigned int layers,

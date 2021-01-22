@@ -85,8 +85,6 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     double *yp = &y[0];
     double *x_, *y_;
 
-    dim3 blx, thx;
-
     float time;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -148,8 +146,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** Original GPU implementation ***/
-    time = run_kernel0(x_, sizex, pos, y_, sizey, layers, blx, thx,
-                       title, header);
+    time = run_kernel0(x_, sizex, pos, y_, sizey, layers, title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;

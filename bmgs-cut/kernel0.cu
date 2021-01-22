@@ -122,7 +122,7 @@ void Zcuda(bmgs_cut_cuda_gpu)(
 float run_kernel0(double *x_, const int3 sizex, const int3 pos,
                   double *y_, const int3 sizey,
                   const unsigned int layers,
-                  dim3 blx, dim3 thx, char *title, char *header)
+                  char *title, char *header)
 {
     const int dimx[3] = {sizex.x, sizex.y, sizex.z};
     const int dimy[3] = {sizey.x, sizey.y, sizey.z};
@@ -133,6 +133,8 @@ float run_kernel0(double *x_, const int3 sizex, const int3 pos,
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
+    dim3 blocks, threads;
+
     double *xx_;
     double *yy_;
 
@@ -141,13 +143,14 @@ float run_kernel0(double *x_, const int3 sizex, const int3 pos,
     xx_ = x_;
     yy_ = y_;
     cudaEventRecord(start);
-    bmgs_cut_cuda_gpu(xx_, dimx, position, yy_, dimy, layers, &blx, &thx);
+    bmgs_cut_cuda_gpu(xx_, dimx, position, yy_, dimy, layers,
+                      &blocks, &threads);
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERNEL0");
     sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
-            blx.x, blx.y, blx.z, thx.x, thx.y, thx.z);
+            blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;
 }

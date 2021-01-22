@@ -1,4 +1,4 @@
-#include "kernel.h"
+#include "kernels.h"
 
 
 __global__ void Zcuda(bmgs_cut_cuda_kernel)(
@@ -119,10 +119,10 @@ void Zcuda(bmgs_cut_cuda_gpu)(
 }
 
 
-float run_kernel(double *x_, const int3 sizex, const int3 pos,
-                 double *y_, const int3 sizey,
-                 const unsigned int layers,
-                 dim3 blx, dim3 thx, char *title, char *header)
+float run_kernel0(double *x_, const int3 sizex, const int3 pos,
+                  double *y_, const int3 sizey,
+                  const unsigned int layers,
+                  dim3 blx, dim3 thx, char *title, char *header)
 {
     const int dimx[3] = {sizex.x, sizex.y, sizex.z};
     const int dimy[3] = {sizey.x, sizey.y, sizey.z};

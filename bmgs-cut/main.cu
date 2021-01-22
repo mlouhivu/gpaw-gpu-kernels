@@ -292,8 +292,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     reset(x, x_, n, y, y_, m, layers);
 
     /*** Original GPU implementation ***/
-    time = run_kernel(x_, sizex, pos, y_, sizey, layers, blx, thx,
-                      title, header);
+    time = run_kernel0(x_, sizex, pos, y_, sizey, layers, blx, thx,
+                       title, header);
     cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
     check_result(header, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;

@@ -91,6 +91,9 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     cudaEventCreate(&stop);
     int ri=0;
 
+    kernel_func kp[MAX_KERNELS];
+    get_kernels(kp);
+
     // initialise data
     for (i=0; i < layers * n; i++) {
         x[i] = (double) i / 1000.0;
@@ -124,12 +127,6 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
 
     /*** CPU implementation ***/
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
     cudaEventRecord(start);
     for (l=0; l < layers; l++) {
         bmgs_cut(xp + l * n, dimx, position, yp + l * m, dimy);
@@ -142,95 +139,18 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     check_result(name, &y_ref[0], yp, layers * m, time, verbose);
     results[ri++] = time;
 
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
+    /*** GPU implementations ***/
+    i = 0;
+    while (kp[i] != NULL) {
+        reset(x, x_, n, y, y_, m, layers);
 
-    /*** Original GPU implementation ***/
-    time = run_kernel0(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
+        // launch kernel
+        time = kp[i++](x_, sizex, pos, y_, sizey, layers, title, header);
 
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
-
-    /*** New GPU implementation (optimised) ***/
-    time = run_kernel1(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
-
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
-
-    /*** New GPU implementation (optimised multi-block) ***/
-    time = run_kernel2(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
-
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
-
-    /*** New GPU implementation (optimised multi-block) ***/
-    time = run_kernel2b(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
-
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
-
-    /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    time = run_kernel3(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
-
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
-
-    /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    time = run_kernel3b(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
-
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
-
-    /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    time = run_kernel3c(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
-
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
-
-    /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    time = run_kernel4(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
-
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
-
-    /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    time = run_kernel4b(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
-
-    /*** reset ***/
-    reset(x, x_, n, y, y_, m, layers);
-
-    /*** New GPU implementation (optimised multi-block, block in dim) ***/
-    time = run_kernel5(x_, sizex, pos, y_, sizey, layers, title, header);
-    cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
-    check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
+        cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
+        check_result(header, &y_ref[0], yp, layers * m, time, verbose);
+        results[ri++] = time;
+    }
 
     return ri;
 }

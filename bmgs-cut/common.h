@@ -33,4 +33,7 @@ static unsigned int nextPow2(unsigned int x) {
     return ++x;
 }
 
+typedef float (*kernel_func)(double *, int3, int3, double *, int3,
+                             unsigned int, char*, char*);
+
 #endif

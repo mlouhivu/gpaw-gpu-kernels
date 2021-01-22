@@ -106,3 +106,21 @@ t_config get_config()
 
     return config;
 }
+
+void get_kernels(kernel_func *kernels)
+{
+    for (int j=0; j < MAX_KERNELS; j++)
+        kernels[j] = NULL;
+
+    int i = 0;
+    kernels[i++] = &run_kernel0;
+    kernels[i++] = &run_kernel1;
+    kernels[i++] = &run_kernel2;
+    kernels[i++] = &run_kernel2b;
+    kernels[i++] = &run_kernel3;
+    kernels[i++] = &run_kernel3b;
+    kernels[i++] = &run_kernel3c;
+    kernels[i++] = &run_kernel4;
+    kernels[i++] = &run_kernel4b;
+    kernels[i++] = &run_kernel5;
+}

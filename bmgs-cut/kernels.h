@@ -5,6 +5,8 @@
 #include <cuda_runtime.h>
 #include "common.h"
 
+#define MAX_KERNELS 64
+
 float run_kernel0(double *x_, const int3 sizex, const int3 pos,
                   double *y_, const int3 sizey,
                   const unsigned int layers,

@@ -190,29 +190,6 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel2)(
     }
 }
 
-__global__ void Zcuda(bmgs_cut_cuda_kernel2b)(
-        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o)
-{
-    int tidx = threadIdx.x + blockIdx.x * blockDim.x;
-    int tidy = threadIdx.y + blockIdx.y * blockDim.y;
-    int stridex = gridDim.x * blockDim.x;
-    int stridey = gridDim.y * blockDim.y;
-    int t, s, tz, sz;
-    int i;
-
-    for (; tidy < m.x; tidy += stridey) {
-        t = m.z * m.y * tidy;
-        s = n.z * n.y * (tidy + o.x) + o.z;
-        for (; tidx < m.y; tidx += stridex) {
-            t = tz + m.z * tidx;
-            s = sz + n.z * (tidy + o.y);
-            for (i=0; i < m.z; i++) {
-                tgt[tidx + t + i] = src[tidx + s + i];
-            }
-        }
-    }
-}
-
 
 double variance(double *reference, double *result, int n)
 {

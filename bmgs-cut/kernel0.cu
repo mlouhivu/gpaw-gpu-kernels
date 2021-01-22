@@ -145,7 +145,7 @@ float run_kernel0(double *x_, const int3 sizex, const int3 pos,
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
-    sprintf(name, "KERNEL");
+    sprintf(name, "KERNEL0");
     sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blx.x, blx.y, blx.z, thx.x, thx.y, thx.z);

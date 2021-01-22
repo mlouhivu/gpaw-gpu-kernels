@@ -107,35 +107,6 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel4)(
     }
 }
 
-__global__ void Zcuda(bmgs_cut_cuda_kernel4b)(
-        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o)
-{
-    int tidx = threadIdx.x + blockIdx.x * blockDim.x;
-    int tidy = threadIdx.y + blockIdx.y * blockDim.y;
-    int tidz = threadIdx.z;
-    int stridex = gridDim.x * blockDim.x;
-    int stridey = gridDim.y * blockDim.y;
-    int stridez = blockDim.z;
-    int b = blockIdx.z;
-    int t, s, tb, sb;
-    int i, j, k;
-
-    tb = m.z * m.y * m.x * b;
-    sb = n.z * n.y * n.x * b
-       + n.z * n.y * o.x
-       + n.z * o.y
-       + o.z;
-    for (i = tidz; i < m.x; i += stridez) {
-        for (j = tidy; j < m.y; j += stridey) {
-            t = tb + m.z * m.y * i + m.z * j;
-            s = sb + n.z * n.y * i + n.z * j;
-            for (k = tidx; k < m.z; k += stridex) {
-                tgt[k + t] = src[k + s];
-            }
-        }
-    }
-}
-
 __global__ void Zcuda(bmgs_cut_cuda_kernel3)(
         Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o, int blocks)
 {

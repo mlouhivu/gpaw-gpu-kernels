@@ -177,6 +177,7 @@ int main(void)
     float best[maxargs];
     float total[kernels];
     float time;
+    float best_total = 9999.0;
 
     char title[512];
 
@@ -218,8 +219,17 @@ int main(void)
     printf("\nTotal (lost) time:\n%s\n", title);
     for (j=0; j < rj; j++) {
         printf("%f ", total[j]);
+        best_total = MIN(best_total, total[j]);
     }
-    printf("\n");
+    printf("  (absolute)\n");
+    for (j=0; j < rj; j++) {
+        time = total[j] - best_total;
+        if (time > 0.0)
+            printf("%f ", time);
+        else
+            printf("-------- ");
+    }
+    printf("  (relative difference)\n");
 
     return 0;
 }

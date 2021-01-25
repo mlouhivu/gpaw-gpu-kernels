@@ -8,6 +8,9 @@
 #define MAX_ARGS 512
 #define MAX_KERNELS 512
 
+#define DEFAULT_REPEAT 10
+#define DEFAULT_TRIALS 10
+
 typedef struct {
     int layers;
     int3 dimx;

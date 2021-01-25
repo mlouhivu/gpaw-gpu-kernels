@@ -164,12 +164,33 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     return ri;
 }
 
-int main(void)
+void parse_args(int argc, char *argv[], int *repeat, int *trials)
+{
+    switch (argc) {
+        case 1:
+            break;
+        case 2:
+            // one argument
+            (*repeat) = atoi(argv[1]);
+            break;
+        case 3:
+            // two arguments
+            (*repeat) = atoi(argv[1]);
+            (*trials) = atoi(argv[2]);
+            break;
+        default:
+            printf("Usage: bmgs-cut {repeat} {trials}\n");
+            exit(-1);
+    }
+}
+
+
+int main(int argc, char *argv[])
 {
     int i, j;
 
-    int repeat = 10;
-    int trials = 10;
+    int repeat = DEFAULT_REPEAT;
+    int trials = DEFAULT_TRIALS;
 
     int ri = 0;
     int rj = 0;
@@ -183,6 +204,8 @@ int main(void)
 
     t_config config;
     t_arg arg;
+
+    parse_args(argc, argv, &repeat, &trials);
 
     for (i=0; i < MAX_KERNELS; i++)
         total[i] = 0.0;

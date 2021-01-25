@@ -72,6 +72,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     int i, j, k, l, s, t;
     int verbose = 0;
     int repeat = 10;
+    int trials = 10;
     char header[512];
     char name[32];
 
@@ -148,8 +149,13 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
         reset(x, x_, n, y, y_, m, layers);
 
         // launch kernel
-        time = kp[i++](x_, sizex, pos, y_, sizey, layers, title, header,
-                       repeat);
+        time = 0.0;
+        for (j=0; j < trials; j++) {
+            time += kp[i](x_, sizex, pos, y_, sizey, layers, title, header,
+                          repeat, j);
+        }
+        time /= trials;
+        i++;
 
         cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
         check_result(header, &y_ref[0], yp, layers * m, time, verbose);
@@ -165,10 +171,10 @@ int main(void)
 
     int ri = 0;
     int rj = 0;
-    int trials = 512;
+    int maxargs = 512;
     int kernels = 512;
-    float results[trials][kernels];
-    float best[trials];
+    float results[maxargs][kernels];
+    float best[maxargs];
     float total[kernels];
     float time;
 

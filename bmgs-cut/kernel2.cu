@@ -33,7 +33,8 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel2)(
 float run_kernel2(double *x_, const int3 sizex, const int3 pos,
                   double *y_, const int3 sizey,
                   const unsigned int layers,
-                  char *title, char *header, const int repeat)
+                  char *title, char *header,
+                  const int repeat, const int trial)
 {
     float time;
     cudaEvent_t start, stop;
@@ -59,7 +60,8 @@ float run_kernel2(double *x_, const int3 sizex, const int3 pos,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERNEL2");
-    sprintf(title, "%s %8s", title, name);
+    if (!trial)
+        sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;
@@ -68,7 +70,8 @@ float run_kernel2(double *x_, const int3 sizex, const int3 pos,
 float run_kernel2b(double *x_, const int3 sizex, const int3 pos,
                    double *y_, const int3 sizey,
                    const unsigned int layers,
-                   char *title, char *header, const int repeat)
+                   char *title, char *header,
+                   const int repeat, const int trial)
 {
     float time;
     cudaEvent_t start, stop;
@@ -94,7 +97,8 @@ float run_kernel2b(double *x_, const int3 sizex, const int3 pos,
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERN2v2");
-    sprintf(title, "%s %8s", title, name);
+    if (!trial)
+        sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;

@@ -45,21 +45,22 @@ float run_kernel4(double *x_, const int3 sizex, const int3 pos,
     char name[32];
 
     cudaEventRecord(start);
-    threads.x = MIN(nextPow2(sizey.z), BLOCK_MAX);
-    threads.y = MIN(MIN(nextPow2(sizey.y), BLOCK_TOTALMAX / threads.x),
-                    BLOCK_MAX);
-    threads.z = MIN(BLOCK_TOTALMAX / (threads.x * threads.y), BLOCK_MAX);
-    blocks.x = (sizey.z + threads.x - 1) / threads.x;
-    blocks.y = layers * ((sizey.y + threads.y - 1) / threads.y);
-    blocks.z = 1;
-    bmgs_cut_cuda_kernel4<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos, layers);
+    for (int i=0; i < repeat; i++) {
+        threads.x = MIN(nextPow2(sizey.z), BLOCK_MAX);
+        threads.y = MIN(MIN(nextPow2(sizey.y), BLOCK_TOTALMAX / threads.x),
+                        BLOCK_MAX);
+        threads.z = MIN(BLOCK_TOTALMAX / (threads.x * threads.y), BLOCK_MAX);
+        blocks.x = (sizey.z + threads.x - 1) / threads.x;
+        blocks.y = layers * ((sizey.y + threads.y - 1) / threads.y);
+        blocks.z = 1;
+        bmgs_cut_cuda_kernel4<<<blocks, threads>>>(
+                x_, y_, sizex, sizey, pos, layers);
+    }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERNEL4");
-    if (!repeat)
-        sprintf(title, "%s %8s", title, name);
+    sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;
@@ -80,20 +81,21 @@ float run_kernel4b(double *x_, const int3 sizex, const int3 pos,
     char name[32];
 
     cudaEventRecord(start);
-    threads.x = 1;
-    threads.y = MIN(nextPow2(sizey.y), BLOCK_MAX);
-    threads.z = MIN(BLOCK_MAX / (threads.x * threads.y), BLOCK_MAX);
-    blocks.x = (sizey.z + threads.x - 1) / threads.x;
-    blocks.y = layers * ((sizey.y + threads.y - 1) / threads.y);
-    blocks.z = 1;
-    bmgs_cut_cuda_kernel4<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos, layers);
+    for (int i=0; i < repeat; i++) {
+        threads.x = 1;
+        threads.y = MIN(nextPow2(sizey.y), BLOCK_MAX);
+        threads.z = MIN(BLOCK_MAX / (threads.x * threads.y), BLOCK_MAX);
+        blocks.x = (sizey.z + threads.x - 1) / threads.x;
+        blocks.y = layers * ((sizey.y + threads.y - 1) / threads.y);
+        blocks.z = 1;
+        bmgs_cut_cuda_kernel4<<<blocks, threads>>>(
+                x_, y_, sizex, sizey, pos, layers);
+    }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERN4v2");
-    if (!repeat)
-        sprintf(title, "%s %8s", title, name);
+    sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;

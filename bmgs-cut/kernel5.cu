@@ -49,25 +49,26 @@ float run_kernel5(double *x_, const int3 sizex, const int3 pos,
 
     char name[32];
 
-    xx_ = x_;
     cudaEventRecord(start);
-    threads.x = MIN(nextPow2(dimy[2]), BLOCK_TOTALMAX);
-    threads.y = MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (dimy[2] + threads.x - 1) / threads.x;
-    blocks.y = (dimy[1] + threads.y - 1) / threads.y;
-    blocks.z = layers;
-    xx_ += dimx[2] * dimx[1] * position[0]
-         + dimx[2] * position[1]
-         + position[2];
-    bmgs_cut_cuda_kernel5<<<blocks, threads>>>(
-            xx_, y_, sizex, sizey, pos);
+    for (int i=0; i < repeat; i++) {
+        xx_ = x_;
+        threads.x = MIN(nextPow2(dimy[2]), BLOCK_TOTALMAX);
+        threads.y = MIN(nextPow2(dimy[1]), BLOCK_TOTALMAX / threads.x);
+        threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
+        blocks.x = (dimy[2] + threads.x - 1) / threads.x;
+        blocks.y = (dimy[1] + threads.y - 1) / threads.y;
+        blocks.z = layers;
+        xx_ += dimx[2] * dimx[1] * position[0]
+             + dimx[2] * position[1]
+             + position[2];
+        bmgs_cut_cuda_kernel5<<<blocks, threads>>>(
+                xx_, y_, sizex, sizey, pos);
+    }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERNEL5");
-    if (!repeat)
-        sprintf(title, "%s %8s", title, name);
+    sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;

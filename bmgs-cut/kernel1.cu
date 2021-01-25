@@ -46,26 +46,28 @@ float run_kernel1(double *x_, const int3 sizex, const int3 pos,
 
     char name[32];
 
-    xx_ = x_;
-    yy_ = y_;
     cudaEventRecord(start);
-    threads.x = min(nextPow2(sizey.z), BLOCK_TOTALMAX);
-    threads.y = min(nextPow2(sizey.y), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (sizey.z + threads.x - 1) / threads.x;
-    blocks.y = (sizey.y + threads.y - 1) / threads.y;
-    blocks.z = (sizey.x + threads.z - 1) / threads.z;
-    for (int l=0; l < layers; l++) {
-        bmgs_cut_cuda_kernel1<<<blocks, threads>>>(xx_, yy_, sizex, sizey, pos);
-        xx_ += n;
-        yy_ += m;
+    for (int i=0; i < repeat; i++) {
+        xx_ = x_;
+        yy_ = y_;
+        threads.x = min(nextPow2(sizey.z), BLOCK_TOTALMAX);
+        threads.y = min(nextPow2(sizey.y), BLOCK_TOTALMAX / threads.x);
+        threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
+        blocks.x = (sizey.z + threads.x - 1) / threads.x;
+        blocks.y = (sizey.y + threads.y - 1) / threads.y;
+        blocks.z = (sizey.x + threads.z - 1) / threads.z;
+        for (int l=0; l < layers; l++) {
+            bmgs_cut_cuda_kernel1<<<blocks, threads>>>(
+                    xx_, yy_, sizex, sizey, pos);
+            xx_ += n;
+            yy_ += m;
+        }
     }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERNEL1");
-    if (!repeat)
-        sprintf(title, "%s %8s", title, name);
+    sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;

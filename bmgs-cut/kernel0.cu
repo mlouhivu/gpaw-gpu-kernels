@@ -141,17 +141,18 @@ float run_kernel0(double *x_, const int3 sizex, const int3 pos,
 
     char name[32];
 
-    xx_ = x_;
-    yy_ = y_;
     cudaEventRecord(start);
-    bmgs_cut_cuda_gpu(xx_, dimx, position, yy_, dimy, layers,
-                      &blocks, &threads);
+    for (int i=0; i < repeat; i++) {
+        xx_ = x_;
+        yy_ = y_;
+        bmgs_cut_cuda_gpu(xx_, dimx, position, yy_, dimy, layers,
+                          &blocks, &threads);
+    }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERNEL0");
-    if (!repeat)
-        sprintf(title, "%s %8s", title, name);
+    sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;

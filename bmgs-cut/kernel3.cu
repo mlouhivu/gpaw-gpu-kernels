@@ -44,20 +44,21 @@ float run_kernel3(double *x_, const int3 sizex, const int3 pos,
     char name[32];
 
     cudaEventRecord(start);
-    threads.x = MIN(nextPow2(sizey.z), BLOCK_TOTALMAX);
-    threads.y = MIN(nextPow2(sizey.y), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (sizey.z + threads.x - 1) / threads.x;
-    blocks.y = (sizey.y + threads.y - 1) / threads.y;
-    blocks.z = layers;
-    bmgs_cut_cuda_kernel3<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos);
+    for (int i=0; i < repeat; i++) {
+        threads.x = MIN(nextPow2(sizey.z), BLOCK_TOTALMAX);
+        threads.y = MIN(nextPow2(sizey.y), BLOCK_TOTALMAX / threads.x);
+        threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
+        blocks.x = (sizey.z + threads.x - 1) / threads.x;
+        blocks.y = (sizey.y + threads.y - 1) / threads.y;
+        blocks.z = layers;
+        bmgs_cut_cuda_kernel3<<<blocks, threads>>>(
+                x_, y_, sizex, sizey, pos);
+    }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERNEL3");
-    if (!repeat)
-        sprintf(title, "%s %8s", title, name);
+    sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;
@@ -78,20 +79,21 @@ float run_kernel3b(double *x_, const int3 sizex, const int3 pos,
     char name[32];
 
     cudaEventRecord(start);
-    threads.x = MIN(nextPow2(sizey.z), BLOCK_MAX);
-    threads.y = MIN(nextPow2(sizey.y), BLOCK_TOTALMAX / threads.x);
-    threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
-    blocks.x = (sizey.z + threads.x - 1) / threads.x;
-    blocks.y = (sizey.y + threads.y - 1) / threads.y;
-    blocks.z = layers;
-    bmgs_cut_cuda_kernel3<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos);
+    for (int i=0; i < repeat; i++) {
+        threads.x = MIN(nextPow2(sizey.z), BLOCK_MAX);
+        threads.y = MIN(nextPow2(sizey.y), BLOCK_TOTALMAX / threads.x);
+        threads.z = BLOCK_TOTALMAX / (threads.x * threads.y);
+        blocks.x = (sizey.z + threads.x - 1) / threads.x;
+        blocks.y = (sizey.y + threads.y - 1) / threads.y;
+        blocks.z = layers;
+        bmgs_cut_cuda_kernel3<<<blocks, threads>>>(
+                x_, y_, sizex, sizey, pos);
+    }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERN3v2");
-    if (!repeat)
-        sprintf(title, "%s %8s", title, name);
+    sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;
@@ -112,20 +114,21 @@ float run_kernel3c(double *x_, const int3 sizex, const int3 pos,
     char name[32];
 
     cudaEventRecord(start);
-    threads.x = MIN(nextPow2(sizey.z), BLOCK_MAX);
-    threads.y = MIN(nextPow2(sizey.y), BLOCK_MAX / threads.x);
-    threads.z = BLOCK_MAX / (threads.x * threads.y);
-    blocks.x = (sizey.z + threads.x - 1) / threads.x;
-    blocks.y = (sizey.y + threads.y - 1) / threads.y;
-    blocks.z = layers;
-    bmgs_cut_cuda_kernel3<<<blocks, threads>>>(
-            x_, y_, sizex, sizey, pos);
+    for (int i=0; i < repeat; i++) {
+        threads.x = MIN(nextPow2(sizey.z), BLOCK_MAX);
+        threads.y = MIN(nextPow2(sizey.y), BLOCK_MAX / threads.x);
+        threads.z = BLOCK_MAX / (threads.x * threads.y);
+        blocks.x = (sizey.z + threads.x - 1) / threads.x;
+        blocks.y = (sizey.y + threads.y - 1) / threads.y;
+        blocks.z = layers;
+        bmgs_cut_cuda_kernel3<<<blocks, threads>>>(
+                x_, y_, sizex, sizey, pos);
+    }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&time, start, stop);
     sprintf(name, "KERN3v3");
-    if (!repeat)
-        sprintf(title, "%s %8s", title, name);
+    sprintf(title, "%s %8s", title, name);
     sprintf(header, "%s  <<<(%d,%d,%d), (%d, %d, %d)>>>", name,
             blocks.x, blocks.y, blocks.z, threads.x, threads.y, threads.z);
     return time;

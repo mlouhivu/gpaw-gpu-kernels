@@ -129,8 +129,10 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
 
     /*** CPU implementation ***/
     cudaEventRecord(start);
-    for (l=0; l < layers; l++) {
-        bmgs_cut(xp + l * n, dimx, position, yp + l * m, dimy);
+    for (i=0; i < repeat; i++) {
+        for (l=0; l < layers; l++) {
+            bmgs_cut(xp + l * n, dimx, position, yp + l * m, dimy);
+        }
     }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
@@ -138,7 +140,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     sprintf(name, "CPU");
     sprintf(title, "%8s", name);
     check_result(name, &y_ref[0], yp, layers * m, time, verbose);
-    results[ri++] = time;
+    results[ri++] = time / repeat;
 
     /*** GPU implementations ***/
     i = 0;
@@ -146,14 +148,12 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
         reset(x, x_, n, y, y_, m, layers);
 
         // launch kernel
-        for (j=0; j < repeat; j++)
-            time += kp[i](x_, sizex, pos, y_, sizey, layers, title, header, j);
-        time /= repeat;
-        i++;
+        time = kp[i++](x_, sizex, pos, y_, sizey, layers, title, header,
+                       repeat);
 
         cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
         check_result(header, &y_ref[0], yp, layers * m, time, verbose);
-        results[ri++] = time;
+        results[ri++] = time / repeat;
     }
 
     return ri;

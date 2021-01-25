@@ -2,6 +2,7 @@
 #define CONFIG_H_
 
 #include <cuda_runtime.h>
+#include "common.h"
 #include "kernels.h"
 
 #define MAX_ARGS 512

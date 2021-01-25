@@ -67,12 +67,11 @@ void reset(double *x, double *x_, int n,
 }
 
 int run(const unsigned int layers, const int3 sizex, const int3 sizey,
-        int3 pos, float *results, char *title)
+        int3 pos, float *results, char *title,
+        const int repeat, const int trials)
 {
     int i, j, k, l, s, t;
     int verbose = 0;
-    int repeat = 10;
-    int trials = 10;
     char header[512];
     char name[32];
 
@@ -169,6 +168,9 @@ int main(void)
 {
     int i, j;
 
+    int repeat = 10;
+    int trials = 10;
+
     int ri = 0;
     int rj = 0;
     int maxargs = 512;
@@ -187,11 +189,15 @@ int main(void)
     for (i=0; i < kernels; i++)
         total[i] = 0.0;
 
+    printf("# BMGS-CUT\n");
+    printf("#  measurements:    %d\n", trials);
+    printf("#  kernel launches: %d\n", repeat);
+
     config = get_config();
     for (i=0; i < config.nargs; i++) {
         arg = config.args[i];
         j = run(arg.layers, arg.dimx, arg.dimy, arg.position,
-                results[ri++], title);
+                results[ri++], title, repeat, trials);
         rj = MAX(rj, j);
     }
 

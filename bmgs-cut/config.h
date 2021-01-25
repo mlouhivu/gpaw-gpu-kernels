@@ -6,6 +6,7 @@
 #include "kernels.h"
 
 #define MAX_ARGS 512
+#define MAX_KERNELS 512
 
 typedef struct {
     int layers;

@@ -173,11 +173,9 @@ int main(void)
 
     int ri = 0;
     int rj = 0;
-    int maxargs = 512;
-    int kernels = 512;
-    float results[maxargs][kernels];
-    float best[maxargs];
-    float total[kernels];
+    float results[MAX_ARGS][MAX_KERNELS];
+    float best[MAX_ARGS];
+    float total[MAX_KERNELS];
     float time;
     float best_total = 9999.0;
 
@@ -186,7 +184,7 @@ int main(void)
     t_config config;
     t_arg arg;
 
-    for (i=0; i < kernels; i++)
+    for (i=0; i < MAX_KERNELS; i++)
         total[i] = 0.0;
 
     printf("# BMGS-CUT\n");

@@ -95,13 +95,13 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     kernel_func kp[MAX_KERNELS];
     get_kernels(kp);
 
+    // allocate GPU arrays
+    cudaMalloc((void **) &x_, sizeof(double) * n * layers);
+    cudaMalloc((void **) &y_, sizeof(double) * m * layers);
+
     // initialise data
-    for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
-    }
-    for (i=0; i < layers * m; i++) {
-        y[i] = 0.0;
-    }
+    reset(x, x_, n, y, y_, m, layers);
+
     // copy reference values
     for (l=0; l < layers; l++) {
         for (i=0; i < dimy[0]; i++) {
@@ -120,12 +120,6 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
             }
         }
     }
-
-    // allocate + copy initial values
-    cudaMalloc((void **) &x_, sizeof(double) * n * layers);
-    cudaMalloc((void **) &y_, sizeof(double) * m * layers);
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
 
     /*** CPU implementation ***/
     cudaEventRecord(start);

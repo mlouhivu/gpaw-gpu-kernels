@@ -21,6 +21,30 @@ void bmgs_cut(const double *a, const int n[3], const int c[3],
     }
 }
 
+void reference(double *y_ref, double *x, const unsigned int layers,
+               const int3 sizex, const int3 sizey, const int3 pos)
+{
+    int i, j, k, l, s, t;
+
+    for (l=0; l < layers; l++) {
+        for (i=0; i < sizey.x; i++) {
+            for (j=0; j < sizey.y; j++) {
+                for (k=0; k < sizey.z; k++) {
+                    t = sizey.z * sizey.y * sizey.x * l
+                      + sizey.z * sizey.y * i
+                      + sizey.z * j
+                      + k;
+                    s = sizex.z * sizex.y * sizex.x * l
+                      + sizex.z * sizex.y * (i + pos.x)
+                      + sizex.z * (j + pos.y)
+                      + k + pos.z;
+                    y_ref[t] = x[s];
+                }
+            }
+        }
+    }
+}
+
 double variance(double *reference, double *result, int n)
 {
     int i;
@@ -70,7 +94,7 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
         int3 pos, float *results, char *title,
         const int repeat, const int trials)
 {
-    int i, j, k, l, s, t;
+    int i, j, l;
     int verbose = 0;
     char header[512];
     char name[32];
@@ -102,24 +126,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     // initialise data
     reset(x, x_, n, y, y_, m, layers);
 
-    // copy reference values
-    for (l=0; l < layers; l++) {
-        for (i=0; i < dimy[0]; i++) {
-            for (j=0; j < dimy[1]; j++) {
-                for (k=0; k < dimy[2]; k++) {
-                    t = dimy[2] * dimy[1] * dimy[0] * l
-                      + dimy[2] * dimy[1] * i
-                      + dimy[2] * j
-                      + k;
-                    s = dimx[2] * dimx[1] * dimx[0] * l
-                      + dimx[2] * dimx[1] * (i + position[0])
-                      + dimx[2] * (j + position[1])
-                      + k + position[2];
-                    y_ref[t] = x[s];
-                }
-            }
-        }
-    }
+    // get reference values
+    reference(&y_ref[0], xp, layers, sizex, sizey, pos);
 
     /*** CPU implementation ***/
     cudaEventRecord(start);

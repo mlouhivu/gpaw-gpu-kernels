@@ -51,19 +51,6 @@ void Zcuda(bmgs_cut_cuda_gpu)(
     hc_sizeb.y=sizeb[1];
     hc_sizeb.z=sizeb[2];
 
-#ifdef DEBUG_CUDA_CUT
-    int ng = sizea[0] * sizea[1] * sizea[2];
-    int ng2 = sizeb[0] * sizeb[1] * sizeb[2];
-    double* a_cpu = GPAW_MALLOC(double, ng * blocks);
-    double* b_cpu = GPAW_MALLOC(double, ng2 * blocks);
-    double* a_cpu2 = GPAW_MALLOC(double, ng * blocks);
-    double* b_cpu2 = GPAW_MALLOC(double, ng2 * blocks);
-    const Tcuda* a2 = a;
-
-    GPAW_CUDAMEMCPY(a_cpu, a, double, ng * blocks, cudaMemcpyDeviceToHost);
-    GPAW_CUDAMEMCPY(b_cpu, b, double, ng2 * blocks, cudaMemcpyDeviceToHost);
-#endif //DEBUG_CUDA_CUT
-
     int blockx = MIN(nextPow2(hc_sizeb.z), BLOCK_MAX);
     int blocky = MIN(
             MIN(nextPow2(hc_sizeb.y), BLOCK_TOTALMAX / blockx),
@@ -85,37 +72,7 @@ void Zcuda(bmgs_cut_cuda_gpu)(
 
     Zcuda(bmgs_cut_cuda_kernel)<<<dimGrid, dimBlock, 0>>>(
             (Tcuda*) a, hc_sizea, (Tcuda*) b, hc_sizeb,
-         blocks, xdiv);
-    //gpaw_cudaSafeCall(cudaGetLastError());
-
-#ifdef DEBUG_CUDA_CUT
-    for (int m=0; m < blocks; m++) {
-        bmgs_cut(a_cpu + m * ng, sizea, starta, b_cpu + m * ng2, sizeb);
-    }
-    cudaDeviceSynchronize();
-    GPAW_CUDAMEMCPY(a_cpu2, a2, double, ng * blocks,
-            cudaMemcpyDeviceToHost);
-    GPAW_CUDAMEMCPY(b_cpu2, b, double, ng2 * blocks,
-            cudaMemcpyDeviceToHost);
-
-    double a_err = 0;
-    double b_err = 0;
-    for (int i=0; i < ng2 * blocks; i++) {
-        b_err = MAX(b_err, fabs(b_cpu[i] - b_cpu2[i]));
-        if (i < ng * blocks) {
-            a_err = MAX(a_err, fabs(a_cpu[i] - a_cpu2[i]));
-        }
-    }
-    if ((b_err > GPAW_CUDA_ABS_TOL_EXCT)
-            || (a_err > GPAW_CUDA_ABS_TOL_EXCT)) {
-        fprintf(stderr, "Debug cuda cut errors: a %g b %g\n",
-                a_err, b_err);
-    }
-    free(a_cpu);
-    free(b_cpu);
-    free(a_cpu2);
-    free(b_cpu2);
-#endif //DEBUG_CUDA_CUT
+            blocks, xdiv);
 }
 
 

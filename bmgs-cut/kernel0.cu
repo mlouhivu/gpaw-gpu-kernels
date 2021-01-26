@@ -78,8 +78,7 @@ void Zcuda(bmgs_cut_cuda_gpu)(
 
 /*** Original GPU implementation ***/
 float run_kernel0(double *x_, const int3 sizex, const int3 pos,
-                  double *y_, const int3 sizey,
-                  const unsigned int layers,
+                  double *y_, const int3 sizey, const int layers,
                   char *title, char *header,
                   const int repeat, const int trial)
 {

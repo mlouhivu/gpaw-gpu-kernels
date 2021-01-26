@@ -21,7 +21,7 @@ void bmgs_cut(const double *a, const int n[3], const int c[3],
     }
 }
 
-void reference(double *y_ref, double *x, const unsigned int layers,
+void reference(double *y_ref, double *x, const int layers,
                const int3 sizex, const int3 sizey, const int3 pos)
 {
     int i, j, k, l, s, t;
@@ -90,7 +90,7 @@ void reset(double *x, double *x_, int n,
     cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
 }
 
-int run(const unsigned int layers, const int3 sizex, const int3 sizey,
+int run(const int layers, const int3 sizex, const int3 sizey,
         int3 pos, float *results, char *title,
         const int repeat, const int trials)
 {

@@ -31,8 +31,7 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel4)(
 
 /*** New GPU implementation (multi-block, block in dim) ***/
 float run_kernel4(double *x_, const int3 sizex, const int3 pos,
-                  double *y_, const int3 sizey,
-                  const unsigned int layers,
+                  double *y_, const int3 sizey, const int layers,
                   char *title, char *header,
                   const int repeat, const int trial)
 {
@@ -69,8 +68,7 @@ float run_kernel4(double *x_, const int3 sizex, const int3 pos,
 }
 
 float run_kernel4b(double *x_, const int3 sizex, const int3 pos,
-                   double *y_, const int3 sizey,
-                   const unsigned int layers,
+                   double *y_, const int3 sizey, const int layers,
                    char *title, char *header,
                    const int repeat, const int trial)
 {

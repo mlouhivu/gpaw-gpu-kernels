@@ -103,8 +103,8 @@ int run(const unsigned int layers, const int3 sizex, const int3 sizey,
     const int dimy[3] = {sizey.x, sizey.y, sizey.z};
     const int position[3] = {pos.x, pos.y, pos.z};
 
-    const int n = dimx[0] * dimx[1] * dimx[2];
-    const int m = dimy[0] * dimy[1] * dimy[2];
+    const int n = sizex.x * sizex.y * sizex.z;
+    const int m = sizey.x * sizey.y * sizey.z;
     double x[layers * n], y[layers * m], y_ref[layers * m];
     double *xp = &x[0];
     double *yp = &y[0];

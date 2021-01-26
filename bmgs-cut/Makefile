@@ -1,9 +1,10 @@
 CFLAGS := -gencode arch=compute_70,code=sm_70
 CC := nvcc
 
+exe := bmgs-cut
 objects := $(patsubst %.cu, %.o, $(wildcard *.cu))
 
-bmgs-cut: $(objects)
+$(exe): $(objects)
 	$(CC) -o $@ $(objects)
 
 main.o: main.cu common.h
@@ -16,4 +17,4 @@ config.o: config.cu config.h common.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
-	rm *.o bmgs-cut
+	rm *.o $(exe)

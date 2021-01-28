@@ -121,4 +121,6 @@ void get_kernels(kernel_func *kernels)
     int i = 0;
     kernels[i++] = &run_kernel0;
     kernels[i++] = &run_kernel1;
+    kernels[i++] = &run_kernel2;
+    kernels[i++] = &run_kernel2b;
 }

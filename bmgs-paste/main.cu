@@ -113,7 +113,7 @@ void reset(double *x, double *x_, int n,
     int i;
 
     for (i=0; i < layers * n; i++) {
-        x[i] = (double) i / 1000.0;
+        x[i] = 1.0 + (double) i / 1000.0;
     }
     for (i=0; i < layers * m; i++) {
         y[i] = 0.0;

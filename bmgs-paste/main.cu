@@ -70,6 +70,27 @@ double variance(double *reference, double *result, const int layers,
     return sqrt(error) / n;
 }
 
+void echo(const char *title, double *x, const int3 size, const int layers)
+{
+    printf("%s\n", title);
+    for (int l=0; l < layers; l++) {
+        for (int k=0; k < size.z; k++) {
+            for (int i=0; i < size.x; i++) {
+                for (int j=0; j < size.y; j++) {
+                    int index = size.z * size.y * size.x * l
+                          + size.z * size.y * i
+                          + size.z * j
+                          + k;
+                    printf(" %f", x[index]);
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+}
+
 void check_result(const char *name, double *y_ref, double *y,
                   const int layers, const int3 slice, const int3 size,
                   const int3 position, double time, int verbose)
@@ -94,16 +115,10 @@ void check_result(const char *name, double *y_ref, double *y,
         printf("   result: %f %f %f ... %f %f\n",
                 y[start + 0], y[start + 1], y[start + 2],
                 y[end - 2], y[end - 1]);
-/*        int i;
-        printf("reference:");
-        for (i=0; i < size.x * size.y * size.z * layers; i++)
-            printf(" %f", y_ref[i]);
-        printf("\n   result:");
-        for (i=0; i < size.x * size.y * size.z * layers; i++)
-            printf(" %f", y[i]);
-        printf("\n");*/
         printf(" variance: %f\n", error);
         printf("exec time: %f\n", time);
+        if (verbose > 1)
+            echo("Y", y, size, layers);
     }
 }
 
@@ -128,6 +143,7 @@ int run(const int layers, const int3 sizex, const int3 sizey,
 {
     int i, j, l;
     int verbose = 0;
+    int debug = (verbose > 1) ? 1: 0;
     char header[512];
     char name[32];
 
@@ -157,9 +173,13 @@ int run(const int layers, const int3 sizex, const int3 sizey,
 
     // initialise data
     reset(x, x_, n, y, y_, m, layers);
+    if (debug)
+        echo("X", x, sizex, layers);
 
     // get reference values
     reference(&y_ref[0], xp, layers, sizex, sizey, pos);
+    if (debug)
+        echo("Y_REF", y_ref, sizey, layers);
 
     /*** CPU implementation ***/
     cudaEventRecord(start);

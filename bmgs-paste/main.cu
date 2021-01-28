@@ -234,7 +234,7 @@ void parse_args(int argc, char *argv[], int *repeat, int *trials)
             (*trials) = atoi(argv[2]);
             break;
         default:
-            printf("Usage: bmgs-cut {repeat} {trials}\n");
+            printf("Usage: bmgs-paste {repeat} {trials}\n");
             exit(-1);
     }
 }
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
     for (i=0; i < MAX_KERNELS; i++)
         total[i] = 0.0;
 
-    printf("# BMGS-CUT\n");
+    printf("# BMGS-PASTE\n");
     printf("#  measurements:    %d\n", trials);
     printf("#  kernel launches: %d\n", repeat);
 

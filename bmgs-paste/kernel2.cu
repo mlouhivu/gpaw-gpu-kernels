@@ -83,7 +83,8 @@ float run_kernel2b(double *x_, const int3 sizex, const int3 pos,
     cudaEventRecord(start);
     for (int i=0; i < repeat; i++) {
         threads.x = MIN(nextPow2(sizex.z), BLOCK_MAX);
-        threads.y = MIN(nextPow2(sizex.y), BLOCK_TOTALMAX / threads.x);
+        threads.y = MIN(MIN(nextPow2(sizex.y), BLOCK_TOTALMAX / threads.x),
+                        BLOCK_MAX);
         threads.z = MIN(BLOCK_TOTALMAX / (threads.x * threads.y), BLOCK_MAX);
         blocks.x = (sizex.z + threads.x - 1) / threads.x;
         blocks.y = (sizex.y + threads.y - 1) / threads.y;

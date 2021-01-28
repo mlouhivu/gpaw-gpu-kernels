@@ -123,4 +123,10 @@ void get_kernels(kernel_func *kernels)
     kernels[i++] = &run_kernel1;
     kernels[i++] = &run_kernel2;
     kernels[i++] = &run_kernel2b;
+    kernels[i++] = &run_kernel3;
+    kernels[i++] = &run_kernel3b;
+    kernels[i++] = &run_kernel3c;
+    kernels[i++] = &run_kernel4;
+    kernels[i++] = &run_kernel4b;
+    kernels[i++] = &run_kernel5;
 }

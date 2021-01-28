@@ -25,4 +25,34 @@ float run_kernel2b(double *x_, const int3 sizex, const int3 pos,
                    char *title, char *header,
                    const int repeat, const int trial);
 
+float run_kernel3(double *x_, const int3 sizex, const int3 pos,
+                  double *y_, const int3 sizey, const int layers,
+                  char *title, char *header,
+                  const int repeat, const int trial);
+
+float run_kernel3b(double *x_, const int3 sizex, const int3 pos,
+                   double *y_, const int3 sizey, const int layers,
+                   char *title, char *header,
+                   const int repeat, const int trial);
+
+float run_kernel3c(double *x_, const int3 sizex, const int3 pos,
+                   double *y_, const int3 sizey, const int layers,
+                   char *title, char *header,
+                   const int repeat, const int trial);
+
+float run_kernel4(double *x_, const int3 sizex, const int3 pos,
+                  double *y_, const int3 sizey, const int layers,
+                  char *title, char *header,
+                  const int repeat, const int trial);
+
+float run_kernel4b(double *x_, const int3 sizex, const int3 pos,
+                   double *y_, const int3 sizey, const int layers,
+                   char *title, char *header,
+                   const int repeat, const int trial);
+
+float run_kernel5(double *x_, const int3 sizex, const int3 pos,
+                  double *y_, const int3 sizey, const int layers,
+                  char *title, char *header,
+                  const int repeat, const int trial);
+
 #endif

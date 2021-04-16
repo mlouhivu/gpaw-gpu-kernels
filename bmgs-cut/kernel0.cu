@@ -3,7 +3,7 @@
 
 __global__ void Zcuda(bmgs_cut_cuda_kernel)(
         const Tcuda* a, const int3 c_sizea, Tcuda* b, const int3 c_sizeb,
-        int blocks, int xdiv)
+        const Tcuda phase, int blocks, int xdiv)
 {
     int xx = gridDim.x / xdiv;  // xdiv == x ; xx == Nz
     int yy = gridDim.y / blocks; // blocks == blocks ; yy == Ny
@@ -26,7 +26,11 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel)(
 */
     while (xind < c_sizeb.x) {
         if ((i2 < c_sizeb.z) && (i1 < c_sizeb.y)) {
+#ifndef USE_COMPLEX
             b[0] = a[0];
+#else
+            b[0] = MULTT(phase, a[0]);
+#endif
         }
         b += xdiv * c_sizeb.y * c_sizeb.z;
         a += xdiv * c_sizea.y * c_sizea.z;
@@ -37,7 +41,7 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel)(
 
 void Zcuda(bmgs_cut_cuda_gpu)(
         const Tcuda* a, const int sizea[3], const int starta[3],
-        Tcuda* b, const int sizeb[3],
+        Tcuda* b, const int sizeb[3], const Tcuda phase,
         int blocks, dim3 *blx, dim3 *thx)
 {
     if (!(sizea[0] && sizea[1] && sizea[2]))
@@ -71,14 +75,15 @@ void Zcuda(bmgs_cut_cuda_gpu)(
     a += starta[2] + (starta[1] + starta[0] * hc_sizea.y) * hc_sizea.z;
 
     Zcuda(bmgs_cut_cuda_kernel)<<<dimGrid, dimBlock, 0>>>(
-            (Tcuda*) a, hc_sizea, (Tcuda*) b, hc_sizeb,
+            (Tcuda*) a, hc_sizea, (Tcuda*) b, hc_sizeb, phase,
             blocks, xdiv);
 }
 
 
 /*** Original GPU implementation ***/
-float run_kernel0(double *x_, const int3 sizex, const int3 pos,
-                  double *y_, const int3 sizey, const int layers,
+float run_kernel0(Tcuda *x_, const int3 sizex, const int3 pos,
+                  Tcuda *y_, const int3 sizey, const int layers,
+                  const Tcuda phase_,
                   char *title, char *header,
                   const int repeat, const int trial)
 {
@@ -93,8 +98,8 @@ float run_kernel0(double *x_, const int3 sizex, const int3 pos,
 
     dim3 blocks, threads;
 
-    double *xx_;
-    double *yy_;
+    Tcuda *xx_;
+    Tcuda *yy_;
 
     char name[32];
 
@@ -102,8 +107,8 @@ float run_kernel0(double *x_, const int3 sizex, const int3 pos,
     for (int i=0; i < repeat; i++) {
         xx_ = x_;
         yy_ = y_;
-        bmgs_cut_cuda_gpu(xx_, dimx, position, yy_, dimy, layers,
-                          &blocks, &threads);
+        Zcuda(bmgs_cut_cuda_gpu)(xx_, dimx, position, yy_, dimy, phase_,
+                                layers, &blocks, &threads);
     }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);

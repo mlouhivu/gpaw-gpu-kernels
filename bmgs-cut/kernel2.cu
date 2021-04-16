@@ -1,7 +1,8 @@
 #include "kernels.h"
 
 __global__ void Zcuda(bmgs_cut_cuda_kernel2)(
-        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o, int blocks)
+        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o, int blocks,
+        const Tcuda phase)
 {
     int tidx = threadIdx.x + blockIdx.x * blockDim.x;
     int tidy = threadIdx.y + blockIdx.y * blockDim.y;
@@ -22,7 +23,7 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel2)(
                 t = tz + m.z * j;
                 s = sz + n.z * (j + o.y);
                 for (k = tidx; k < m.z; k += stridex) {
-                    tgt[k + t] = src[k + s];
+                    tgt[k + t] = MULTT(phase, src[k + s]);
                 }
             }
         }
@@ -30,8 +31,9 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel2)(
 }
 
 /*** New GPU implementation (multi-block) ***/
-float run_kernel2(double *x_, const int3 sizex, const int3 pos,
-                  double *y_, const int3 sizey, const int layers,
+float run_kernel2(Tcuda *x_, const int3 sizex, const int3 pos,
+                  Tcuda *y_, const int3 sizey, const int layers,
+                  const Tcuda phase_,
                   char *title, char *header,
                   const int repeat, const int trial)
 {
@@ -52,8 +54,8 @@ float run_kernel2(double *x_, const int3 sizex, const int3 pos,
         blocks.x = (sizey.z + threads.x - 1) / threads.x;
         blocks.y = (sizey.y + threads.y - 1) / threads.y;
         blocks.z = (sizey.x + threads.z - 1) / threads.z;
-        bmgs_cut_cuda_kernel2<<<blocks, threads>>>(
-                x_, y_, sizex, sizey, pos, layers);
+        Zcuda(bmgs_cut_cuda_kernel2)<<<blocks, threads>>>(
+                x_, y_, sizex, sizey, pos, layers, phase_);
     }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
@@ -66,8 +68,9 @@ float run_kernel2(double *x_, const int3 sizex, const int3 pos,
     return time;
 }
 
-float run_kernel2b(double *x_, const int3 sizex, const int3 pos,
-                   double *y_, const int3 sizey, const int layers,
+float run_kernel2b(Tcuda *x_, const int3 sizex, const int3 pos,
+                   Tcuda *y_, const int3 sizey, const int layers,
+                   const Tcuda phase_,
                    char *title, char *header,
                    const int repeat, const int trial)
 {
@@ -88,8 +91,8 @@ float run_kernel2b(double *x_, const int3 sizex, const int3 pos,
         blocks.x = (sizey.z + threads.x - 1) / threads.x;
         blocks.y = (sizey.y + threads.y - 1) / threads.y;
         blocks.z = (sizey.x + threads.z - 1) / threads.z;
-        bmgs_cut_cuda_kernel2<<<blocks, threads>>>(
-                x_, y_, sizex, sizey, pos, layers);
+        Zcuda(bmgs_cut_cuda_kernel2)<<<blocks, threads>>>(
+                x_, y_, sizex, sizey, pos, layers, phase_);
     }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);

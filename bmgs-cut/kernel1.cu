@@ -1,7 +1,7 @@
 #include "kernels.h"
 
 __global__ void Zcuda(bmgs_cut_cuda_kernel1)(
-        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o)
+        Tcuda *src, Tcuda *tgt, int3 n, int3 m, int3 o, const Tcuda phase)
 {
     int tidx = threadIdx.x + blockIdx.x * blockDim.x;
     int tidy = threadIdx.y + blockIdx.y * blockDim.y;
@@ -19,15 +19,16 @@ __global__ void Zcuda(bmgs_cut_cuda_kernel1)(
             t = tz + m.z * j;
             s = sz + n.z * (j + o.y);
             for (k = tidx; k < m.z; k += stridex) {
-                tgt[k + t] = src[k + s];
+                tgt[k + t] = MULTT(phase, src[k + s]);
             }
         }
     }
 }
 
 /*** New GPU implementation ***/
-float run_kernel1(double *x_, const int3 sizex, const int3 pos,
-                  double *y_, const int3 sizey, const int layers,
+float run_kernel1(Tcuda *x_, const int3 sizex, const int3 pos,
+                  Tcuda *y_, const int3 sizey, const int layers,
+                  const Tcuda phase_,
                   char *title, char *header,
                   const int repeat, const int trial)
 {
@@ -41,8 +42,8 @@ float run_kernel1(double *x_, const int3 sizex, const int3 pos,
 
     dim3 blocks, threads;
 
-    double *xx_;
-    double *yy_;
+    Tcuda *xx_;
+    Tcuda *yy_;
 
     char name[32];
 
@@ -57,8 +58,8 @@ float run_kernel1(double *x_, const int3 sizex, const int3 pos,
         blocks.y = (sizey.y + threads.y - 1) / threads.y;
         blocks.z = (sizey.x + threads.z - 1) / threads.z;
         for (int l=0; l < layers; l++) {
-            bmgs_cut_cuda_kernel1<<<blocks, threads>>>(
-                    xx_, yy_, sizex, sizey, pos);
+            Zcuda(bmgs_cut_cuda_kernel1)<<<blocks, threads>>>(
+                    xx_, yy_, sizex, sizey, pos, phase_);
             xx_ += n;
             yy_ += m;
         }

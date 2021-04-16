@@ -1,19 +1,20 @@
 #include <stdio.h>
-#include <cuda_runtime.h>
 #include "common.h"
 #include "config.h"
 #include "kernels.h"
 
+extern const T default_phase;
+extern const Tcuda default_phase_;
 
-void bmgs_cut(const double *a, const int n[3], const int c[3],
-              double *b, const int m[3])
+void bmgs_cut(const T *a, const int n[3], const int c[3],
+              T *b, const int m[3])
 {
   a += c[2] + (c[1] + c[0] * n[1]) * n[2];
   for (int i0 = 0; i0 < m[0]; i0++)
     {
       for (int i1 = 0; i1 < m[1]; i1++)
         {
-          memcpy(b, a, m[2] * sizeof(double));
+          memcpy(b, a, m[2] * sizeof(T));
           a += n[2];
           b += m[2];
         }
@@ -21,8 +22,25 @@ void bmgs_cut(const double *a, const int n[3], const int c[3],
     }
 }
 
-void reference(double *y_ref, double *x, const int layers,
-               const int3 sizex, const int3 sizey, const int3 pos)
+void bmgs_cutmz(const T* a, const int sizea[3], const int start[3],
+                T* b, const int sizeb[3], T p)
+{
+    a += start[2] + (start[1] + start[0] * sizea[1]) * sizea[2];
+    for (int i0 = 0; i0 < sizeb[0]; i0++)
+    {
+        for (int i1 = 0; i1 < sizeb[1]; i1++)
+        {
+            for (int i2 = 0; i2 < sizeb[2]; i2++)
+                b[i2] = p * a[i2];
+            a += sizea[2];
+            b += sizeb[2];
+        }
+        a += sizea[2] * (sizea[1] - sizeb[1]);
+    }
+}
+
+void reference(T *y_ref, T *x, const int layers,
+               const int3 sizex, const int3 sizey, const int3 pos, T phase)
 {
     int i, j, k, l, s, t;
 
@@ -38,27 +56,27 @@ void reference(double *y_ref, double *x, const int layers,
                       + sizex.z * sizex.y * (i + pos.x)
                       + sizex.z * (j + pos.y)
                       + k + pos.z;
-                    y_ref[t] = x[s];
+                    y_ref[t] = phase * x[s];
                 }
             }
         }
     }
 }
 
-double variance(double *reference, double *result, int n)
+double variance(T *reference, T *result, int n)
 {
     int i;
     double error = 0.0;
     double diff;
 
     for (i=0; i < n; i++) {
-        diff = reference[i] - result[i];
+        diff = ABS(reference[i] - result[i]);
         error += diff * diff;
     }
     return sqrt(error) / n;
 }
 
-void check_result(const char *name, double *y_ref, double *y, int n,
+void check_result(const char *name, T *y_ref, T *y, int n,
                   double time, int verbose)
 {
     double error;
@@ -66,28 +84,46 @@ void check_result(const char *name, double *y_ref, double *y, int n,
     error = variance(y_ref, y, n);
     if (error || verbose) {
         printf("\n%s\n", name);
+#ifndef USE_COMPLEX
         printf("reference: %f %f %f ... %f %f\n",
                 y_ref[0], y_ref[1], y_ref[2], y_ref[n - 2], y_ref[n - 1]);
         printf("   result: %f %f %f ... %f %f\n",
                 y[0], y[1], y[2], y[n - 2], y[n - 1]);
+#else
+        printf("reference: (%f,%f) (%f,%f) ... (%f,%f)\n",
+                y_ref[0].x, y_ref[0].y, y_ref[1].x, y_ref[1].y,
+                y_ref[n - 1].x, y_ref[n - 1].y);
+        printf("   result: (%f,%f) (%f,%f) ... (%f,%f)\n",
+                y[0].x, y[0].y, y[1].x, y[1].y, y[n - 1].x, y[n - 1].y);
+#endif
         printf(" variance: %f\n", error);
         printf("exec time: %f\n", time);
     }
 }
 
-void reset(double *x, double *x_, int n,
-           double *y, double *y_, int m, int layers)
+void reset(T *x, Tcuda *x_, int n,
+           T *y, Tcuda *y_, int m, int layers)
 {
     int i;
 
     for (i=0; i < layers * n; i++) {
-        x[i] = 1.0 + (double) i / 1000.0;
+#ifdef USE_COMPLEX
+        x[i].x = 1.0 + (double) i / 10000.0;
+        x[i].y = 1.0 - (double) i / 10000.0;
+#else
+        x[i] = 1.0 + (double) i / 10000.0;
+#endif
     }
     for (i=0; i < layers * m; i++) {
+#ifdef USE_COMPLEX
+        y[i].x = 0.0;
+        y[i].y = 0.0;
+#else
         y[i] = 0.0;
+#endif
     }
-    cudaMemcpy(x_, x, sizeof(double) * n * layers, cudaMemcpyHostToDevice);
-    cudaMemcpy(y_, y, sizeof(double) * m * layers, cudaMemcpyHostToDevice);
+    cudaMemcpy(x_, x, sizeof(T) * n * layers, cudaMemcpyHostToDevice);
+    cudaMemcpy(y_, y, sizeof(T) * m * layers, cudaMemcpyHostToDevice);
 }
 
 int run(const int layers, const int3 sizex, const int3 sizey,
@@ -105,10 +141,18 @@ int run(const int layers, const int3 sizex, const int3 sizey,
 
     const int n = sizex.x * sizex.y * sizex.z;
     const int m = sizey.x * sizey.y * sizey.z;
-    double x[layers * n], y[layers * m], y_ref[layers * m];
-    double *xp = &x[0];
-    double *yp = &y[0];
-    double *x_, *y_;
+    T x[layers * n], y[layers * m], y_ref[layers * m];
+    T *xp = &x[0];
+    T *yp = &y[0];
+    Tcuda *x_, *y_;
+
+#ifdef USE_COMPLEX
+    const T phase = AS_T(0.5, -0.5);
+    const Tcuda phase_ = AS_TCUDA(0.5, -0.5);
+#else
+    const T phase = 1.0;
+    const Tcuda phase_ = 1.0;
+#endif
 
     float time;
     cudaEvent_t start, stop;
@@ -120,20 +164,24 @@ int run(const int layers, const int3 sizex, const int3 sizey,
     get_kernels(kp);
 
     // allocate GPU arrays
-    cudaMalloc((void **) &x_, sizeof(double) * n * layers);
-    cudaMalloc((void **) &y_, sizeof(double) * m * layers);
+    cudaMalloc((void **) &x_, sizeof(Tcuda) * n * layers);
+    cudaMalloc((void **) &y_, sizeof(Tcuda) * m * layers);
 
     // initialise data
     reset(x, x_, n, y, y_, m, layers);
 
     // get reference values
-    reference(&y_ref[0], xp, layers, sizex, sizey, pos);
+    reference(&y_ref[0], xp, layers, sizex, sizey, pos, phase);
 
     /*** CPU implementation ***/
     cudaEventRecord(start);
     for (i=0; i < repeat; i++) {
         for (l=0; l < layers; l++) {
+#ifdef USE_COMPLEX
+            bmgs_cutmz(xp + l * n, dimx, position, yp + l * m, dimy, phase);
+#else
             bmgs_cut(xp + l * n, dimx, position, yp + l * m, dimy);
+#endif
         }
     }
     cudaEventRecord(stop);
@@ -152,13 +200,13 @@ int run(const int layers, const int3 sizex, const int3 sizey,
         // launch kernel
         time = 0.0;
         for (j=0; j < trials; j++) {
-            time += kp[i](x_, sizex, pos, y_, sizey, layers, title, header,
-                          repeat, j);
+            time += kp[i](x_, sizex, pos, y_, sizey, layers, phase_,
+                          title, header, repeat, j);
         }
         time /= trials;
         i++;
 
-        cudaMemcpy(&y, y_, sizeof(double) * m * layers, cudaMemcpyDeviceToHost);
+        cudaMemcpy(&y, y_, sizeof(T) * m * layers, cudaMemcpyDeviceToHost);
         check_result(header, &y_ref[0], yp, layers * m, time, verbose);
         results[ri++] = time / repeat;
     }
@@ -212,7 +260,11 @@ int main(int argc, char *argv[])
     for (i=0; i < MAX_KERNELS; i++)
         total[i] = 0.0;
 
+#ifdef USE_COMPLEX
+    printf("# BMGS-CUTZ\n");
+#else
     printf("# BMGS-CUT\n");
+#endif
     printf("#  measurements:    %d\n", trials);
     printf("#  kernel launches: %d\n", repeat);
 

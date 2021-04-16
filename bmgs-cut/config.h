@@ -1,7 +1,6 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#include <cuda_runtime.h>
 #include "common.h"
 #include "kernels.h"
 
